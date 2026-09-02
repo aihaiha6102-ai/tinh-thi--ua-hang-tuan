@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Quản Lý Lớp 10A11</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #e9ecef; color: #333; display: flex; justify-content: center; }
+        
+        .app-container { width: 100%; max-width: 480px; background: #f4f7f6; min-height: 100vh; position: relative; box-shadow: 0 0 15px rgba(0,0,0,0.1); }
+        
+        .scroll-row { display: flex; overflow-x: auto; gap: 8px; padding-bottom: 8px; scrollbar-width: none; }
+        .scroll-row::-webkit-scrollbar { display: none; }
+        
+        .btn-wrap { display: flex; flex-wrap: wrap; gap: 8px; padding-bottom: 8px; }
+        
+        .nowrap-text { white-space: nowrap; }
+
+        #login-screen { padding: 40px 20px; text-align: center; height: 100vh; display: flex; flex-direction: column; justify-content: center; background: white; }
+        .input-group { margin-bottom: 15px; text-align: left; }
+        .input-group input { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 16px; margin-top: 5px; }
+        .btn-primary { background: #2980b9; color: white; border: none; padding: 14px; width: 100%; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; }
+        
+        #main-app, #admin-dashboard { display: none; padding: 15px; padding-bottom: 120px; }
+        .header-title { font-size: 18px; color: #2c3e50; margin-bottom: 5px; font-weight: bold; }
+        .header-sub { font-size: 14px; color: #7f8c8d; margin-bottom: 15px; }
+        
+        .btn-day { flex: 0 0 auto; padding: 8px 16px; border: none; border-radius: 20px; font-weight: bold; background: #dfe6e9; color: #636e72; white-space: nowrap; cursor: pointer; }
+        .btn-day.active { background: #2980b9; color: white; }
+
+        .student-card { background: white; border-radius: 10px; padding: 12px 15px; margin-bottom: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .student-header { display: flex; justify-content: space-between; align-items: center; }
+        .student-name { font-weight: bold; font-size: 16px; }
+        .btn-toggle { background: #ecf0f1; border: none; padding: 6px 12px; border-radius: 6px; font-weight: bold; color: #2c3e50; white-space: nowrap; cursor: pointer; }
+        
+        .action-panel { display: none; margin-top: 15px; border-top: 1px dashed #ccc; padding-top: 10px; }
+        .section-title { font-size: 13px; font-weight: bold; margin: 10px 0 5px 0; color: #34495e; }
+        
+        .btn-code { flex: 0 0 auto; padding: 8px 12px; border: none; border-radius: 6px; font-size: 13px; font-weight: bold; white-space: nowrap; cursor: pointer; color: white; }
+        .btn-tru-nhe { background: #f39c12; }
+        .btn-tru-nang { background: #e74c3c; }
+        .btn-tru-dacbiet { background: #c0392b; }
+        .btn-cong { background: #27ae60; }
+        .btn-cong-dacbiet { background: #16a085; }
+
+        .bottom-bar { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; background: white; padding: 15px; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); z-index: 100; }
+        
+        .box-nhap-to { width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #ccc; font-family: inherit; margin-bottom: 8px; }
+        
+        .chu-giai-box { background: #fff3cd; border: 1px solid #ffe69c; padding: 12px; border-radius: 8px; font-size: 13px; color: #664d03; margin-bottom: 15px; display: none; line-height: 1.8; }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <!-- MÀN HÌNH ĐĂNG NHẬP -->
+    <div id="login-screen">
+        <h2 style="color: #2980b9; margin-bottom: 5px;" class="nowrap-text">HỆ THỐNG QUẢN LÝ</h2>
+        <p style="color: #7f8c8d; margin-bottom: 30px;" class="nowrap-text">Lớp 10A11 - THPT</p>
+        <div class="input-group">
+            <label class="nowrap-text">Tài khoản (Số điện thoại):</label>
+            <input type="text" id="username" placeholder="Nhập tài khoản...">
+        </div>
+        <div class="input-group">
+            <label class="nowrap-text">Mật khẩu:</label>
+            <input type="password" id="password" placeholder="Nhập mật khẩu...">
+        </div>
+        <button class="btn-primary nowrap-text" onclick="login()">ĐĂNG NHẬP</button>
+    </div>
+
+    <!-- MÀN HÌNH ADMIN (Giáo viên chủ nhiệm) -->
+    <div id="admin-dashboard">
+        <div class="header-title nowrap-text">BẢNG TỔNG HỢP - 10A11</div>
+        <div class="header-sub nowrap-text">Trạng thái: Cập nhật tự động (Real-time)</div>
+        
+        <div class="student-card" style="margin-bottom: 15px;">
+            <div class="section-title nowrap-text">⚙️ NHẬP DANH SÁCH & CÀI ĐẶT TUẦN</div>
+            
+            <select id="chon-tuan-admin" style="width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 6px; border: 1px solid #ccc; font-weight: bold;">
+                <!-- 35 Tuần sẽ được tự động tạo -->
+            </select>
+            
+            <textarea id="nhap-to-1" rows="3" class="box-nhap-to" placeholder="Dán danh sách Tổ 1 (Mỗi dòng 1 tên)"></textarea>
+            <textarea id="nhap-to-2" rows="3" class="box-nhap-to" placeholder="Dán danh sách Tổ 2 (Mỗi dòng 1 tên)"></textarea>
+            <textarea id="nhap-to-3" rows="3" class="box-nhap-to" placeholder="Dán danh sách Tổ 3 (Mỗi dòng 1 tên)"></textarea>
+            <textarea id="nhap-to-4" rows="3" class="box-nhap-to" placeholder="Dán danh sách Tổ 4 (Mỗi dòng 1 tên)"></textarea>
+            
+            <button class="btn-primary nowrap-text" style="margin-top: 5px; background: #27ae60;" onclick="luuCaiDat()">LƯU THIẾT LẬP</button>
+        </div>
+
+        <div class="student-card">
+            <div class="section-title nowrap-text">📊 TRUNG BÌNH TỔ</div>
+            <div id="thong-ke-to" style="overflow-x: auto; margin-top: 10px; text-align: center; color: #7f8c8d;">
+                Đang tải dữ liệu...
+            </div>
+        </div>
+
+        <div class="student-card">
+            <div class="section-title nowrap-text">⚠️ 6 HỌC SINH ĐIỂM THẤP NHẤT</div>
+            <div id="danh-sach-canh-bao" style="overflow-x: auto; margin-top: 10px; text-align: center; color: #7f8c8d;">
+                Đang tải dữ liệu...
+            </div>
+        </div>
+        
+        <div class="student-card">
+            <div class="section-title nowrap-text">📋 BẢNG ĐIỂM CHI TIẾT (LỚP)</div>
+            <div id="bang-diem-chi-tiet" style="overflow-x: auto; margin-top: 10px; text-align: center; color: #7f8c8d;">
+                Đang tải dữ liệu từ máy chủ...
+            </div>
+        </div>
+        
+        <div class="bottom-bar">
+            <button class="btn-primary nowrap-text" style="background: #e74c3c;" onclick="dangXuat()">ĐĂNG XUẤT</button>
+        </div>
+    </div>
+
+    <!-- MÀN HÌNH CHÍNH (Tổ trưởng) -->
+    <div id="main-app">
+        <div class="header-title nowrap-text">Giao diện Tổ Trưởng</div>
+        <div id="hien-thi-tuan" class="header-sub nowrap-text">Đang tải dữ liệu...</div>
+
+        <!-- BẢNG CHÚ GIẢI TỪ VIẾT TẮT -->
+        <button class="btn-primary" style="background: #f39c12; margin-bottom: 10px; padding: 10px; font-size: 14px;" onclick="togglePanel('bang-chu-giai')">📖 XEM GIẢI THÍCH MÃ ĐIỂM</button>
+        <div id="bang-chu-giai" class="chu-giai-box">
+            <strong>🔴 MÃ TRỪ ĐIỂM (Vi phạm nội quy):</strong><br>
+            NC: Nói chuyện | LVR: Làm việc riêng<br>
+            DC: Thiếu dụng cụ | VS: Vệ sinh kém<br>
+            N: Nghỉ học không phép / Ngủ gật | T: Đi trễ<br>
+            BT: Thiếu bài tập | ĐP: Sai đồng phục<br>
+            GOM: Không gom rác | TTN: Tóc tai, nhuộm<br>
+            HĐ: Không tham gia HĐ | KG: Không ghi bài<br>
+            T10: Trốn tiết | NT10: Nói tục<br>
+            TĐ15: Thái độ vô lễ | ĐT20: Dùng điện thoại<br>
+            GL30: Gian lận thi cử | LN40: Lỗi rất nặng khác<br>
+            <hr style="margin: 8px 0; border: 0; border-top: 1px solid #ffe69c;">
+            <strong>🔴 MÃ TRỪ ĐIỂM (Học tập - Không gỡ điểm):</strong><br>
+            Đ0: Điểm 0 | Đ1: Điểm 1<br>
+            Đ2: Điểm 2 | Đ3: Điểm 3<br>
+            <hr style="margin: 8px 0; border: 0; border-top: 1px solid #ffe69c;">
+            <strong>🟢 MÃ CỘNG ĐIỂM (Thành tích):</strong><br>
+            PB: Phát biểu | Đ8, Đ9, Đ10: Điểm tốt<br>
+            TN: Tình nguyện | HĐ: Hoạt động<br>
+            SK: Sự kiện | PT: Phong trào<br>
+            CC: Chuyên cần | CB: Chuẩn bị bài
+        </div>
+
+        <div class="scroll-row" style="margin-bottom: 10px;" id="chon-to-to-truong">
+            <button class="btn-day active" onclick="chonTo(1, this)">Tổ 1</button>
+            <button class="btn-day" onclick="chonTo(2, this)">Tổ 2</button>
+            <button class="btn-day" onclick="chonTo(3, this)">Tổ 3</button>
+            <button class="btn-day" onclick="chonTo(4, this)">Tổ 4</button>
+        </div>
+
+        <div class="scroll-row" style="margin-bottom: 10px;" id="chon-ngay-to-truong">
+            <button class="btn-day active" onclick="chonNgay(this)">Thứ 2</button>
+            <button class="btn-day" onclick="chonNgay(this)">Thứ 3</button>
+            <button class="btn-day" onclick="chonNgay(this)">Thứ 4</button>
+            <button class="btn-day" onclick="chonNgay(this)">Thứ 5</button>
+            <button class="btn-day" onclick="chonNgay(this)">Thứ 6</button>
+            <button class="btn-day" onclick="chonNgay(this)">Thứ 7</button>
+        </div>
+
+        <div id="danh-sach-to-truong">
+            <!-- Danh sách học sinh sẽ được nạp tự động vào đây -->
+        </div>
+
+        <div id="bottom-bar-action" class="bottom-bar">
+            <button class="btn-primary nowrap-text" style="background: #e74c3c;" onclick="dangXuat()">ĐĂNG XUẤT</button>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+    import { getDatabase, ref, set, push, onValue } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyDMOhzRcgb72Miloscik6Xwb7SDR32R3qg",
+        authDomain: "so-diem-cong-2026.firebaseapp.com",
+        databaseURL: "https://so-diem-cong-2026-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "so-diem-cong-2026",
+        storageBucket: "so-diem-cong-2026.firebasestorage.app",
+        messagingSenderId: "939012264892",
+        appId: "1:939012264892:web:9c40481ed3b5769e5f11b9"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    window.tuanHienTaiGlobal = "tuan_1";
+
+    const actionPanelTemplate = `
+        <div class="section-title nowrap-text">🔴 ĐIỂM TRỪ (Vi phạm nội quy)</div>
+        <div class="btn-wrap">
+            <button class="btn-code btn-tru-nhe">NC2 (-2đ)</button>
+            <button class="btn-code btn-tru-nhe">LVR3 (-3đ)</button>
+            <button class="btn-code btn-tru-nhe">DC2 (-2đ)</button>
+            <button class="btn-code btn-tru-nhe">VS3 (-3đ)</button>
+            <button class="btn-code btn-tru-nhe">N2 (-2đ)</button>
+        </div>
+        <div class="btn-wrap">
+            <button class="btn-code btn-tru-nang">T5 (-5đ)</button>
+            <button class="btn-code btn-tru-nang">BT5 (-5đ)</button>
+            <button class="btn-code btn-tru-nang">ĐP4 (-4đ)</button>
+            <button class="btn-code btn-tru-nang">GOM5 (-5đ)</button>
+            <button class="btn-code btn-tru-nang">TTN7 (-7đ)</button>
+            <button class="btn-code btn-tru-nang">HĐ7 (-7đ)</button>
+            <button class="btn-code btn-tru-nang">KG8 (-8đ)</button>
+        </div>
+        <div class="btn-wrap">
+            <button class="btn-code btn-tru-dacbiet">T10 (-10đ)</button>
+            <button class="btn-code btn-tru-dacbiet">NT10 (-10đ)</button>
+            <button class="btn-code btn-tru-dacbiet">TĐ15 (-15đ)</button>
+            <button class="btn-code btn-tru-dacbiet">ĐT20 (-20đ)</button>
+            <button class="btn-code btn-tru-dacbiet">GL30 (-30đ)</button>
+            <button class="btn-code btn-tru-dacbiet">LN40 (-40đ)</button>
+        </div>
+        
+        <div class="section-title nowrap-text">🔴 ĐIỂM TRỪ (Học tập yếu kém)</div>
+        <div class="btn-wrap">
+            <button class="btn-code btn-tru-dacbiet">Đ0 (-7đ)</button>
+            <button class="btn-code btn-tru-nang">Đ1 (-5đ)</button>
+            <button class="btn-code btn-tru-nang">Đ2 (-3đ)</button>
+            <button class="btn-code btn-tru-nang">Đ3 (-2đ)</button>
+        </div>
+
+        <div class="section-title nowrap-text">🟢 ĐIỂM CỘNG (Thành tích)</div>
+        <div class="btn-wrap">
+            <button class="btn-code btn-cong">PB (+2đ)</button>
+            <button class="btn-code btn-cong">Đ8 (+4đ)</button>
+            <button class="btn-code btn-cong">Đ9 (+5đ)</button>
+            <button class="btn-code btn-cong">Đ10 (+7đ)</button>
+            <button class="btn-code btn-cong">TN (+5đ)</button>
+        </div>
+        <div class="btn-wrap">
+            <button class="btn-code btn-cong-dacbiet">HĐ (+8đ)</button>
+            <button class="btn-code btn-cong-dacbiet">SK (+10đ)</button>
+            <button class="btn-code btn-cong-dacbiet">PT (+10đ)</button>
+            <button class="btn-code btn-cong-dacbiet">CC (+5đ)</button>
+            <button class="btn-code btn-cong-dacbiet">CB (+5đ)</button>
+        </div>
+    `;
+
+    window.luuCaiDat = function() {
+        var tuan = document.getElementById('chon-tuan-admin').value;
+        var to1 = document.getElementById('nhap-to-1').value.trim();
+        var to2 = document.getElementById('nhap-to-2').value.trim();
+        var to3 = document.getElementById('nhap-to-3').value.trim();
+        var to4 = document.getElementById('nhap-to-4').value.trim();
+
+        if(!to1 && !to2 && !to3 && !to4) { 
+            alert("Vui lòng dán danh sách học sinh vào ít nhất 1 tổ!"); 
+            return; 
+        }
+
+        var danhSach = {};
+        var counter = 1;
+
+        var xuLyTo = function(text, toNum) {
+            if(text) {
+                var lines = text.split('\n').filter(r => r.trim() !== '');
+                lines.forEach(ten => {
+                    var id = "hs_" + counter;
+                    danhSach[id] = { ten: ten.trim(), to: toNum };
+                    counter++;
+                });
+            }
+        };
+
+        xuLyTo(to1, 1);
+        xuLyTo(to2, 2);
+        xuLyTo(to3, 3);
+        xuLyTo(to4, 4);
+
+        set(ref(db, 'quan_ly_10a11/cai_dat/tuan_hien_tai'), tuan);
+        set(ref(db, 'quan_ly_10a11/cai_dat/danh_sach'), danhSach).then(() => {
+            alert("Đã lưu danh sách phân tổ và cài đặt tuần thành công!");
+        });
+    };
+
+    window.taiDuLieuGiaoVien = function() {
+        onValue(ref(db, 'quan_ly_10a11/cai_dat'), (snapCaiDat) => {
+            var caiDat = snapCaiDat.val();
+            if(!caiDat || !caiDat.danh_sach) {
+                document.getElementById('bang-diem-chi-tiet').innerHTML = "Chưa có dữ liệu. Vui lòng dán danh sách và lưu thiết lập ở trên.";
+                document.getElementById('thong-ke-to').innerHTML = "Chưa có dữ liệu.";
+                document.getElementById('danh-sach-canh-bao').innerHTML = "Chưa có dữ liệu.";
+                return;
+            }
+            var danhSach = caiDat.danh_sach;
+            var tuan = caiDat.tuan_hien_tai || "tuan_1";
+            
+            var selectTuan = document.getElementById('chon-tuan-admin');
+            if(selectTuan) selectTuan.value = tuan;
+
+            onValue(ref(db, 'quan_ly_10a11/diem/' + tuan), (snapDiem) => {
+                var duLieuDiem = snapDiem.val() || {};
+                
+                var arrHocSinh = [];
+                var thongKeTo = {
+                    1: { tongDiem: 0, soHs: 0 },
+                    2: { tongDiem: 0, soHs: 0 },
+                    3: { tongDiem: 0, soHs: 0 },
+                    4: { tongDiem: 0, soHs: 0 }
+                };
+
+                for (let id in danhSach) {
+                    let hs = danhSach[id];
+                    let diem = 100;
+                    if(duLieuDiem[id]) {
+                        for(let thu in duLieuDiem[id]) {
+                            for(let key in duLieuDiem[id][thu]) {
+                                let ma = duLieuDiem[id][thu][key].ma_quy_uoc;
+                                let match = ma.match(/\(([-+]\d+)đ\)/);
+                                if(match) diem += parseInt(match[1]);
+                            }
+                        }
+                    }
+                    
+                    arrHocSinh.push({
+                        ten: hs.ten,
+                        to: hs.to,
+                        diem: diem
+                    });
+
+                    if(thongKeTo[hs.to]) {
+                        thongKeTo[hs.to].tongDiem += diem;
+                        thongKeTo[hs.to].soHs += 1;
+                    }
+                }
+
+                var bangThongKe = `<table style="width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px;">
+                    <tr style="background: #f4f7f6; text-align: center;">
+                        <th style="padding: 8px; border-bottom: 1px solid #ddd;">Tổ 1</th>
+                        <th style="padding: 8px; border-bottom: 1px solid #ddd;">Tổ 2</th>
+                        <th style="padding: 8px; border-bottom: 1px solid #ddd;">Tổ 3</th>
+                        <th style="padding: 8px; border-bottom: 1px solid #ddd;">Tổ 4</th>
+                    </tr><tr style="text-align: center;">`;
+                
+                for(let i = 1; i <= 4; i++) {
+                    let tb = thongKeTo[i].soHs > 0 ? (thongKeTo[i].tongDiem / thongKeTo[i].soHs).toFixed(1) : 0;
+                    bangThongKe += `<td style="padding: 8px; border-bottom: 1px solid #ddd; font-weight:bold; color:#2980b9;">${tb}</td>`;
+                }
+                bangThongKe += `</tr></table>`;
+                document.getElementById('thong-ke-to').innerHTML = bangThongKe;
+
+                arrHocSinh.sort((a, b) => a.diem - b.diem);
+                var bottom6 = arrHocSinh.slice(0, 6);
+
+                var bangCanhBao = `<table style="width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px;">
+                    <tr style="background: #f4f7f6; text-align: left;">
+                        <th style="padding: 8px; border-bottom: 1px solid #ddd;">Họ và Tên</th>
+                        <th style="padding: 8px; border-bottom: 1px solid #ddd;">Tổ</th>
+                        <th style="padding: 8px; border-bottom: 1px solid #ddd;">Điểm</th>
+                    </tr>`;
+                
+                bottom6.forEach(hs => {
+                    bangCanhBao += `<tr>
+                        <td style="padding: 8px; border-bottom: 1px solid #ddd; text-align: left;">${hs.ten}</td>
+                        <td style="padding: 8px; border-bottom: 1px solid #ddd;">${hs.to}</td>
+                        <td style="padding: 8px; border-bottom: 1px solid #ddd; color: #e74c3c; font-weight:bold;">${hs.diem}</td>
+                    </tr>`;
+                });
+                bangCanhBao += `</table>`;
+                document.getElementById('danh-sach-canh-bao').innerHTML = bangCanhBao;
+
+                var bangDiemHTML = `<table style="width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px;">
+                    <tr style="background: #f4f7f6; text-align: left;">
+                        <th style="padding: 8px; border-bottom: 1px solid #ddd;" class="nowrap-text">Tên</th>
+                        <th style="padding: 8px; border-bottom: 1px solid #ddd;">Tổ</th>
+                        <th style="padding: 8px; border-bottom: 1px solid #ddd;">Điểm</th>
+                        <th style="padding: 8px; border-bottom: 1px solid #ddd;" class="nowrap-text">Loại</th>
+                    </tr>`;
+
+                arrHocSinh.sort((a, b) => {
+                    if (a.to !== b.to) return a.to - b.to;
+                    return 0;
+                });
+
+                arrHocSinh.forEach(hs => {
+                    let xepLoai = hs.diem >= 80 ? "Tốt" : (hs.diem >= 65 ? "Khá" : "TB");
+                    let mauDiem = hs.diem >= 80 ? "#27ae60" : "#e74c3c";
+                    
+                    bangDiemHTML += `<tr>
+                        <td style="padding: 8px; border-bottom: 1px solid #ddd;" class="nowrap-text">${hs.ten}</td>
+                        <td style="padding: 8px; border-bottom: 1px solid #ddd;">${hs.to}</td>
+                        <td style="padding: 8px; border-bottom: 1px solid #ddd; color: ${mauDiem}; font-weight:bold;">${hs.diem}</td>
+                        <td style="padding: 8px; border-bottom: 1px solid #ddd;">${xepLoai}</td>
+                    </tr>`;
+                });
+                bangDiemHTML += `</table>`;
+                document.getElementById('bang-diem-chi-tiet').innerHTML = bangDiemHTML;
+            });
+        });
+    };
+
+    window.taiDuLieuToTruong = function(toDuocChon = 1) {
+        onValue(ref(db, 'quan_ly_10a11/cai_dat'), (snapCaiDat) => {
+            var caiDat = snapCaiDat.val();
+            if(!caiDat || !caiDat.danh_sach) {
+                document.getElementById('danh-sach-to-truong').innerHTML = "Giáo viên chưa cập nhật danh sách lớp.";
+                return;
+            }
+            window.tuanHienTaiGlobal = caiDat.tuan_hien_tai || "tuan_1";
+            
+            var soTuan = window.tuanHienTaiGlobal.split('_')[1];
+            document.getElementById('hien-thi-tuan').innerText = "Tuần hoạt động: Tuần " + soTuan;
+
+            var ds = caiDat.danh_sach;
+            var html = "";
+            for(let id in ds) {
+                if(ds[id].to == toDuocChon) {
+                    html += `<div class="student-card">
+                        <div class="student-header">
+                            <div class="student-name nowrap-text">${ds[id].ten}</div>
+                            <button class="btn-toggle nowrap-text" onclick="togglePanel('panel-${id}')">Chấm điểm ▼</button>
+                        </div>
+                        <div id="panel-${id}" class="action-panel" data-id="${id}">
+                            ${actionPanelTemplate}
+                        </div>
+                    </div>`;
+                }
+            }
+            document.getElementById('danh-sach-to-truong').innerHTML = html;
+        });
+    };
+
+    window.chonTo = function(to, element) {
+        var buttons = document.querySelectorAll('#chon-to-to-truong .btn-day');
+        buttons.forEach(b => b.classList.remove('active'));
+        element.classList.add('active');
+        window.taiDuLieuToTruong(to);
+    };
+
+    window.chonNgay = function(element) {
+        var buttons = document.querySelectorAll('#chon-ngay-to-truong .btn-day');
+        buttons.forEach(b => b.classList.remove('active'));
+        element.classList.add('active');
+    };
+
+    window.login = function() {
+        var matKhau = document.getElementById('password').value;
+        var manHinhDangNhap = document.getElementById('login-screen');
+        var manHinhToTruong = document.getElementById('main-app');
+        var manHinhGV = document.getElementById('admin-dashboard');
+
+        document.getElementById('password').value = "";
+
+        if (matKhau === "0123456") {
+            manHinhDangNhap.style.display = 'none';
+            manHinhGV.style.display = 'block';
+            manHinhToTruong.style.display = 'none';
+            window.taiDuLieuGiaoVien();
+        } else if (matKhau === "123456") {
+            manHinhDangNhap.style.display = 'none';
+            manHinhToTruong.style.display = 'block';
+            manHinhGV.style.display = 'none';
+            window.taiDuLieuToTruong(1);
+        } else {
+            alert("Mật khẩu không chính xác. Vui lòng thử lại!");
+        }
+    };
+    
+    window.dangXuat = function() {
+        document.getElementById('login-screen').style.display = 'flex';
+        document.getElementById('main-app').style.display = 'none';
+        document.getElementById('admin-dashboard').style.display = 'none';
+    };
+
+    window.togglePanel = function(id) {
+        var panel = document.getElementById(id);
+        panel.style.display = (panel.style.display === "block") ? "none" : "block";
+    };
+
+    document.addEventListener("DOMContentLoaded", function() {
+        var selectTuan = document.getElementById('chon-tuan-admin');
+        if (selectTuan) {
+            for(let i=1; i<=35; i++) {
+                let opt = document.createElement('option');
+                opt.value = "tuan_" + i;
+                opt.innerText = "Tuần " + i;
+                selectTuan.appendChild(opt);
+            }
+        }
+
+        document.getElementById('danh-sach-to-truong').addEventListener('click', function(e) {
+            if(e.target.classList.contains('btn-code')) {
+                var tenMaLoi = e.target.innerText; 
+                var thuHienTai = document.querySelector('#chon-ngay-to-truong .btn-day.active').innerText;
+                var panel = e.target.closest('.action-panel');
+                var idHocSinh = panel.getAttribute('data-id');
+                var tuan = window.tuanHienTaiGlobal;
+
+                var duongDan = ref(db, 'quan_ly_10a11/diem/' + tuan + '/' + idHocSinh + '/' + thuHienTai);
+                var banGhiMoi = push(duongDan);
+                
+                set(banGhiMoi, {
+                    ma_quy_uoc: tenMaLoi,
+                    thoi_gian_thuc: new Date().toLocaleString('vi-VN')
+                }).then(() => {
+                    alert("Đã ghi nhận " + tenMaLoi + " thành công!");
+                });
+
+                e.target.style.opacity = "0.5";
+                setTimeout(() => { e.target.style.opacity = "1"; }, 300);
+            }
+        });
+    });
+</script>
+</body>
+</html>
