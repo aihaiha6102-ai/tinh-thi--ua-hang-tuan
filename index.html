@@ -48,7 +48,7 @@
         
         .box-nhap-to { width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #ccc; font-family: inherit; margin-bottom: 8px; }
         
-        .chu-giai-box { background: #fff3cd; border: 1px solid #ffe69c; padding: 12px; border-radius: 8px; font-size: 13px; color: #664d03; margin-bottom: 15px; display: none; line-height: 1.8; }
+        .chu-giai-box { background: #fff3cd; border: 1px solid #ffe69c; padding: 12px; border-radius: 8px; font-size: 13px; color: #664d03; margin-bottom: 15px; display: none; line-height: 1.6; }
         
         .login-tabs { display: flex; gap: 10px; margin-bottom: 20px; }
         .login-tabs button { flex: 1; padding: 10px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; }
@@ -128,13 +128,72 @@
         <div class="header-title nowrap-text">Giao diện Tổ Trưởng</div>
         <div id="hien-thi-tuan" class="header-sub nowrap-text">Đang tải dữ liệu...</div>
 
-        <!-- BẢNG CHÚ GIẢI TỪ VIẾT TẮT -->
-        <button class="btn-primary" style="background: #f39c12; margin-bottom: 10px; padding: 10px; font-size: 14px;" onclick="togglePanel('bang-chu-giai')">📖 XEM GIẢI THÍCH MÃ ĐIỂM</button>
-        <div id="bang-chu-giai" class="chu-giai-box">
-            <strong>🔴 MÃ TRỪ ĐIỂM (Vi phạm nội quy):</strong><br>
-            NC: Nói chuyện | LVR: Làm việc riêng<br>
-            DC: Thiếu dụng cụ | VS: Vệ sinh kém<br>
-            ...
+        <!-- BẢNG CHÚ GIẢI TỪ VIẾT TẮT CHO TỔ TRƯỞNG -->
+        <button class="btn-primary" style="background: #f39c12; margin-bottom: 10px; padding: 10px; font-size: 14px;" onclick="togglePanel('bang-chu-giai-tt')">📖 XEM GIẢI THÍCH MÃ ĐIỂM</button>
+        <div id="bang-chu-giai-tt" class="chu-giai-box" style="max-height: 400px; overflow-y: auto;">
+            <h4 style="color: #c0392b; border-bottom: 1px solid #c0392b; padding-bottom: 5px; margin-bottom: 10px;">🔴 MÃ TRỪ ĐIỂM</h4>
+
+            <strong style="color: #2c3e50;">Mức 1: Sơ suất nhỏ (-2 đến -4đ)</strong>
+            <ul style="padding-left: 20px; margin-bottom: 15px; font-size: 13px;">
+                <li><b>NC2 (-2đ):</b> Nói chuyện riêng, làm ồn nhỏ. <i>(Ghi nhận khi bị nhắc nhở)</i></li>
+                <li><b>LVR3 (-3đ):</b> Làm việc riêng không gây ảnh hưởng lớn.</li>
+                <li><b>DC2 (-2đ):</b> Thiếu 1 dụng cụ học tập (vở, sách, compa...).</li>
+                <li><b>VS3 (-3đ):</b> Vứt rác không đúng nơi quy định.</li>
+            </ul>
+
+            <strong style="color: #2c3e50;">Mức 2: Nề nếp & Học tập (-5 đến -7đ)</strong>
+            <ul style="padding-left: 20px; margin-bottom: 15px; font-size: 13px;">
+                <li><b>T5 (-5đ):</b> Đi học trễ (trong khung giờ 6h40-6h45). <i>(Từ lần thứ 3 tính T10)</i></li>
+                <li><b>BT5 (-5đ):</b> Không làm bài tập / Không chuẩn bị bài. <i>(Ghi rõ môn)</i></li>
+                <li><b>ĐP4 (-4đ):</b> Vi phạm đồng phục (bảng tên, giày, áo Đoàn...).</li>
+                <li><b>GOM5 (-5đ):</b> Gây ồn, mất trật tự ảnh hưởng nhiều người.</li>
+                <li><b>TTN7 (-7đ):</b> Trực nhật chưa sạch, làm qua loa.</li>
+                <li><b>HĐ7 (-7đ):</b> Chưa tích cực tham gia hoạt động nhóm/tổ.</li>
+                <li><b>Đ0 (-7đ):</b> Điểm 0 chưa gỡ trong tuần.</li>
+                <li><b>Đ1 (-5đ):</b> Điểm 1 chưa gỡ trong tuần.</li>
+                <li><b>Đ2 (-3đ):</b> Điểm 2 chưa gỡ trong tuần.</li>
+                <li><b>Đ3 (-2đ):</b> Điểm 3 chưa gỡ trong tuần.</li>
+            </ul>
+
+            <strong style="color: #2c3e50;">Mức 3: Kỷ luật & Thái độ (-8 đến -15đ)</strong>
+            <ul style="padding-left: 20px; margin-bottom: 15px; font-size: 13px;">
+                <li><b>T10 (-10đ):</b> Nghỉ không phép / Đi trễ sau 6h45.</li>
+                <li><b>N2 (-2đ):</b> Nghỉ có phép. <i>(Để công bằng chuyên cần)</i></li>
+                <li><b>KG8 (-8đ):</b> Không gỡ điểm kém trong tuần.</li>
+                <li><b>NT10 (-10đ):</b> Nói tục, chửi thề.</li>
+                <li><b>TĐ15 (-15đ):</b> Thái độ không tôn trọng GV, bạn bè.</li>
+            </ul>
+
+            <strong style="color: #2c3e50;">Mức 4: Vi phạm nghiêm trọng (-20 đến -40đ)</strong>
+            <ul style="padding-left: 20px; margin-bottom: 15px; font-size: 13px;">
+                <li><b>ĐT20 (-20đ):</b> Sử dụng điện thoại.</li>
+                <li><b>GL30 (-30đ):</b> Gian lận thi cử, kiểm tra.</li>
+                <li><b>LN40 (-40đ):</b> Lỗi nặng (Hút thuốc, đánh nhau, vô lễ, vi phạm ATGT...). <i>(Xử lý theo nội quy)</i></li>
+            </ul>
+
+            <h4 style="color: #27ae60; border-bottom: 1px solid #27ae60; padding-bottom: 5px; margin-bottom: 10px; margin-top: 20px;">🟢 MÃ CỘNG ĐIỂM</h4>
+
+            <strong style="color: #2c3e50;">Mức 1: Khuyến khích hàng ngày (+2 đến +4đ)</strong>
+            <ul style="padding-left: 20px; margin-bottom: 15px; font-size: 13px;">
+                <li><b>PB (+2đ):</b> Phát biểu xây dựng bài.</li>
+            </ul>
+
+            <strong style="color: #2c3e50;">Mức 2: Ghi nhận đóng góp (+5 đến +7đ)</strong>
+            <ul style="padding-left: 20px; margin-bottom: 15px; font-size: 13px;">
+                <li><b>Đ8 (+4đ):</b> Đạt điểm 8.</li>
+                <li><b>Đ9 (+5đ):</b> Đạt điểm 9.</li>
+                <li><b>Đ10 (+7đ):</b> Đạt điểm 10.</li>
+                <li><b>TN (+5đ):</b> Tích cực tham gia hoạt động nhóm/tổ.</li>
+            </ul>
+
+            <strong style="color: #2c3e50;">Mức 3: Tuyên dương đặc biệt (+8 đến +10đ)</strong>
+            <ul style="padding-left: 20px; margin-bottom: 15px; font-size: 13px;">
+                <li><b>HĐ (+8đ):</b> Có hành động đẹp, gương người tốt việc tốt.</li>
+                <li><b>SK (+10đ):</b> Có sáng kiến hay, đóng góp hiệu quả cho lớp.</li>
+                <li><b>PT (+10đ):</b> Tham gia tích cực phong trào trường lớp.</li>
+                <li><b>CC (+5đ):</b> Thưởng chuyên cần cuối tuần (không nghỉ, không trễ).</li>
+                <li><b>CB (+5đ):</b> Thưởng cán bộ lớp/tổ hoàn thành tốt nhiệm vụ.</li>
+            </ul>
         </div>
 
         <div class="scroll-row" style="margin-bottom: 10px;" id="chon-to-to-truong">
@@ -166,6 +225,74 @@
     <div id="student-dashboard">
         <div class="header-title nowrap-text" id="student-name-title">Xin chào, ...</div>
         <div class="header-sub nowrap-text" id="student-tuan-title">Tuần ...</div>
+
+        <!-- BẢNG CHÚ GIẢI TỪ VIẾT TẮT CHO HỌC SINH -->
+        <button class="btn-primary" style="background: #f39c12; margin-bottom: 15px; padding: 10px; font-size: 14px;" onclick="togglePanel('bang-chu-giai-hs')">📖 XEM HƯỚNG DẪN CÁC MÃ ĐIỂM</button>
+        <div id="bang-chu-giai-hs" class="chu-giai-box" style="max-height: 400px; overflow-y: auto;">
+            <h4 style="color: #c0392b; border-bottom: 1px solid #c0392b; padding-bottom: 5px; margin-bottom: 10px;">🔴 MÃ TRỪ ĐIỂM</h4>
+
+            <strong style="color: #2c3e50;">Mức 1: Sơ suất nhỏ (-2 đến -4đ)</strong>
+            <ul style="padding-left: 20px; margin-bottom: 15px; font-size: 13px;">
+                <li><b>NC2 (-2đ):</b> Nói chuyện riêng, làm ồn nhỏ. <i>(Ghi nhận khi bị nhắc nhở)</i></li>
+                <li><b>LVR3 (-3đ):</b> Làm việc riêng không gây ảnh hưởng lớn.</li>
+                <li><b>DC2 (-2đ):</b> Thiếu 1 dụng cụ học tập (vở, sách, compa...).</li>
+                <li><b>VS3 (-3đ):</b> Vứt rác không đúng nơi quy định.</li>
+            </ul>
+
+            <strong style="color: #2c3e50;">Mức 2: Nề nếp & Học tập (-5 đến -7đ)</strong>
+            <ul style="padding-left: 20px; margin-bottom: 15px; font-size: 13px;">
+                <li><b>T5 (-5đ):</b> Đi học trễ (trong khung giờ 6h40-6h45). <i>(Từ lần thứ 3 tính T10)</i></li>
+                <li><b>BT5 (-5đ):</b> Không làm bài tập / Không chuẩn bị bài. <i>(Ghi rõ môn)</i></li>
+                <li><b>ĐP4 (-4đ):</b> Vi phạm đồng phục (bảng tên, giày, áo Đoàn...).</li>
+                <li><b>GOM5 (-5đ):</b> Gây ồn, mất trật tự ảnh hưởng nhiều người.</li>
+                <li><b>TTN7 (-7đ):</b> Trực nhật chưa sạch, làm qua loa.</li>
+                <li><b>HĐ7 (-7đ):</b> Chưa tích cực tham gia hoạt động nhóm/tổ.</li>
+                <li><b>Đ0 (-7đ):</b> Điểm 0 chưa gỡ trong tuần.</li>
+                <li><b>Đ1 (-5đ):</b> Điểm 1 chưa gỡ trong tuần.</li>
+                <li><b>Đ2 (-3đ):</b> Điểm 2 chưa gỡ trong tuần.</li>
+                <li><b>Đ3 (-2đ):</b> Điểm 3 chưa gỡ trong tuần.</li>
+            </ul>
+
+            <strong style="color: #2c3e50;">Mức 3: Kỷ luật & Thái độ (-8 đến -15đ)</strong>
+            <ul style="padding-left: 20px; margin-bottom: 15px; font-size: 13px;">
+                <li><b>T10 (-10đ):</b> Nghỉ không phép / Đi trễ sau 6h45.</li>
+                <li><b>N2 (-2đ):</b> Nghỉ có phép. <i>(Để công bằng chuyên cần)</i></li>
+                <li><b>KG8 (-8đ):</b> Không gỡ điểm kém trong tuần.</li>
+                <li><b>NT10 (-10đ):</b> Nói tục, chửi thề.</li>
+                <li><b>TĐ15 (-15đ):</b> Thái độ không tôn trọng GV, bạn bè.</li>
+            </ul>
+
+            <strong style="color: #2c3e50;">Mức 4: Vi phạm nghiêm trọng (-20 đến -40đ)</strong>
+            <ul style="padding-left: 20px; margin-bottom: 15px; font-size: 13px;">
+                <li><b>ĐT20 (-20đ):</b> Sử dụng điện thoại.</li>
+                <li><b>GL30 (-30đ):</b> Gian lận thi cử, kiểm tra.</li>
+                <li><b>LN40 (-40đ):</b> Lỗi nặng (Hút thuốc, đánh nhau, vô lễ, vi phạm ATGT...). <i>(Xử lý theo nội quy)</i></li>
+            </ul>
+
+            <h4 style="color: #27ae60; border-bottom: 1px solid #27ae60; padding-bottom: 5px; margin-bottom: 10px; margin-top: 20px;">🟢 MÃ CỘNG ĐIỂM</h4>
+
+            <strong style="color: #2c3e50;">Mức 1: Khuyến khích hàng ngày (+2 đến +4đ)</strong>
+            <ul style="padding-left: 20px; margin-bottom: 15px; font-size: 13px;">
+                <li><b>PB (+2đ):</b> Phát biểu xây dựng bài.</li>
+            </ul>
+
+            <strong style="color: #2c3e50;">Mức 2: Ghi nhận đóng góp (+5 đến +7đ)</strong>
+            <ul style="padding-left: 20px; margin-bottom: 15px; font-size: 13px;">
+                <li><b>Đ8 (+4đ):</b> Đạt điểm 8.</li>
+                <li><b>Đ9 (+5đ):</b> Đạt điểm 9.</li>
+                <li><b>Đ10 (+7đ):</b> Đạt điểm 10.</li>
+                <li><b>TN (+5đ):</b> Tích cực tham gia hoạt động nhóm/tổ.</li>
+            </ul>
+
+            <strong style="color: #2c3e50;">Mức 3: Tuyên dương đặc biệt (+8 đến +10đ)</strong>
+            <ul style="padding-left: 20px; margin-bottom: 15px; font-size: 13px;">
+                <li><b>HĐ (+8đ):</b> Có hành động đẹp, gương người tốt việc tốt.</li>
+                <li><b>SK (+10đ):</b> Có sáng kiến hay, đóng góp hiệu quả cho lớp.</li>
+                <li><b>PT (+10đ):</b> Tham gia tích cực phong trào trường lớp.</li>
+                <li><b>CC (+5đ):</b> Thưởng chuyên cần cuối tuần (không nghỉ, không trễ).</li>
+                <li><b>CB (+5đ):</b> Thưởng cán bộ lớp/tổ hoàn thành tốt nhiệm vụ.</li>
+            </ul>
+        </div>
 
         <div class="student-card" style="text-align: center;">
             <div class="section-title">TỔNG ĐIỂM CỦA BẠN</div>
