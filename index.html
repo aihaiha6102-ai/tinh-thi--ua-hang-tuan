@@ -254,16 +254,43 @@
             return; 
         }
 
+        var xoaDiemCu = confirm("HỆ THỐNG PHÁT HIỆN LƯU DANH SÁCH MỚI\n\nBạn có muốn XÓA SẠCH toàn bộ điểm nháp của " + tuan + " để làm mới tất cả học sinh về 100 điểm không?\n\n- Chọn OK: Xóa sạch điểm cũ của tuần này.\n- Chọn Cancel: Giữ nguyên điểm cũ.");
+
+        // Hàm tạo ID cố định từ tên học sinh (Lọc dấu Tiếng Việt)
+        function taoIdTuTen(ten) {
+            var str = ten.trim().toLowerCase();
+            str = str.replace(/à|á|ạ|ả|ã|â|ầ|ấ|ậ|ẩ|ẫ|ă|ằ|ắ|ặ|ẳ|ẵ/g, "a");
+            str = str.replace(/è|é|ẹ|ẻ|ẽ|ê|ề|ế|ệ|ể|ễ/g, "e");
+            str = str.replace(/ì|í|ị|ỉ|ĩ/g, "i");
+            str = str.replace(/ò|ó|ọ|ỏ|õ|ô|ồ|ố|ộ|ổ|ỗ|ơ|ờ|ớ|ợ|ở|ỡ/g, "o");
+            str = str.replace(/ù|ú|ụ|ủ|ũ|ư|ừ|ứ|ự|ử|ữ/g, "u");
+            str = str.replace(/ỳ|ý|ỵ|ỷ|ỹ/g, "y");
+            str = str.replace(/đ/g, "d");
+            str = str.replace(/[^a-z0-9]/g, "_"); // kí tự đặc biệt thành dấu gạch dưới
+            str = str.replace(/_+/g, "_"); // Xóa gạch dưới thừa
+            str = str.replace(/^_|_$/g, ""); // Xóa gạch dưới ở 2 đầu
+            return "hs_" + str;
+        }
+
         var danhSach = {};
-        var counter = 1;
+        var seenIds = {};
 
         var xuLyTo = function(text, toNum) {
             if(text) {
                 var lines = text.split('\n').filter(r => r.trim() !== '');
                 lines.forEach(ten => {
-                    var id = "hs_" + counter;
-                    danhSach[id] = { ten: ten.trim(), to: toNum };
-                    counter++;
+                    var tenTrim = ten.trim();
+                    var baseId = taoIdTuTen(tenTrim);
+                    var id = baseId;
+                    var count = 1;
+                    
+                    // Xử lý trường hợp 2 học sinh trùng tên hoàn toàn
+                    while(seenIds[id]) {
+                        id = baseId + "_" + count;
+                        count++;
+                    }
+                    seenIds[id] = true;
+                    danhSach[id] = { ten: tenTrim, to: toNum };
                 });
             }
         };
@@ -273,26 +300,41 @@
         xuLyTo(to3, 3);
         xuLyTo(to4, 4);
 
+        if(xoaDiemCu) {
+            // Xóa toàn bộ dữ liệu điểm của tuần này
+            set(ref(db, 'quan_ly_10a11/diem/' + tuan), null);
+        }
+
         set(ref(db, 'quan_ly_10a11/cai_dat/tuan_hien_tai'), tuan);
+        
+        // Lưu danh sách RIÊNG theo từng tuần để không làm loạn dữ liệu các tuần cũ
+        set(ref(db, 'quan_ly_10a11/cai_dat/danh_sach_tuan/' + tuan), danhSach);
+        
+        // Vẫn lưu danh sách chung làm dự phòng
         set(ref(db, 'quan_ly_10a11/cai_dat/danh_sach'), danhSach).then(() => {
-            alert("Đã lưu danh sách phân tổ và cài đặt tuần thành công!");
+            alert("Đã lưu thiết lập thành công cho " + tuan + "!");
         });
     };
 
     window.taiDuLieuGiaoVien = function() {
         onValue(ref(db, 'quan_ly_10a11/cai_dat'), (snapCaiDat) => {
             var caiDat = snapCaiDat.val();
-            if(!caiDat || !caiDat.danh_sach) {
-                document.getElementById('bang-diem-chi-tiet').innerHTML = "Chưa có dữ liệu. Vui lòng dán danh sách và lưu thiết lập ở trên.";
-                document.getElementById('thong-ke-to').innerHTML = "Chưa có dữ liệu.";
-                document.getElementById('danh-sach-canh-bao').innerHTML = "Chưa có dữ liệu.";
+            if(!caiDat) {
+                document.getElementById('bang-diem-chi-tiet').innerHTML = "Chưa có dữ liệu. Vui lòng thiết lập.";
                 return;
             }
-            var danhSach = caiDat.danh_sach;
-            var tuan = caiDat.tuan_hien_tai || "tuan_1";
             
+            var tuan = caiDat.tuan_hien_tai || "tuan_1";
             var selectTuan = document.getElementById('chon-tuan-admin');
             if(selectTuan) selectTuan.value = tuan;
+
+            // Ưu tiên đọc danh sách riêng của tuần đó, nếu chưa có thì lấy danh sách chung
+            var danhSach = (caiDat.danh_sach_tuan && caiDat.danh_sach_tuan[tuan]) ? caiDat.danh_sach_tuan[tuan] : caiDat.danh_sach;
+
+            if(!danhSach) {
+                document.getElementById('bang-diem-chi-tiet').innerHTML = "Chưa có dữ liệu danh sách cho tuần này.";
+                return;
+            }
 
             onValue(ref(db, 'quan_ly_10a11/diem/' + tuan), (snapDiem) => {
                 var duLieuDiem = snapDiem.val() || {};
@@ -398,16 +440,21 @@
     window.taiDuLieuToTruong = function(toDuocChon = 1) {
         onValue(ref(db, 'quan_ly_10a11/cai_dat'), (snapCaiDat) => {
             var caiDat = snapCaiDat.val();
-            if(!caiDat || !caiDat.danh_sach) {
+            if(!caiDat) {
                 document.getElementById('danh-sach-to-truong').innerHTML = "Giáo viên chưa cập nhật danh sách lớp.";
                 return;
             }
             window.tuanHienTaiGlobal = caiDat.tuan_hien_tai || "tuan_1";
+            var tuan = window.tuanHienTaiGlobal;
             
-            var soTuan = window.tuanHienTaiGlobal.split('_')[1];
+            var soTuan = tuan.split('_')[1];
             document.getElementById('hien-thi-tuan').innerText = "Tuần hoạt động: Tuần " + soTuan;
 
-            var ds = caiDat.danh_sach;
+            // Đọc danh sách riêng của tuần
+            var ds = (caiDat.danh_sach_tuan && caiDat.danh_sach_tuan[tuan]) ? caiDat.danh_sach_tuan[tuan] : caiDat.danh_sach;
+
+            if(!ds) return;
+
             var html = "";
             for(let id in ds) {
                 if(ds[id].to == toDuocChon) {
