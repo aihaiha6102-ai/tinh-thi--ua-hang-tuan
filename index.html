@@ -110,6 +110,14 @@
                 Đang tải dữ liệu...
             </div>
         </div>
+
+        <!-- BẢNG CẢNH BÁO MỚI CÓ XẾP HẠNG THEO LỖI NẶNG -->
+        <div class="student-card">
+            <div class="section-title nowrap-text">⚠️ 6 HỌC SINH ĐIỂM THẤP NHẤT</div>
+            <div id="danh-sach-canh-bao" style="overflow-x: auto; margin-top: 10px; text-align: center; color: #7f8c8d;">
+                Đang tải dữ liệu...
+            </div>
+        </div>
         
         <div class="student-card">
             <div class="section-title nowrap-text">📋 BẢNG ĐIỂM CHI TIẾT (Phân quyền TT)</div>
@@ -333,14 +341,12 @@
     window.tuanHienTaiGlobal = "tuan_1";
     window.globalDanhSach = {};
     window.globalLeaders = {};
-    window.currentToTruongTo = null; // Biến lưu tổ của Tổ trưởng đang đăng nhập
+    window.currentToTruongTo = null;
 
-    // Nạp danh sách học sinh vào dropdown lúc mới mở web
     onValue(ref(db, 'quan_ly_10a11/cai_dat'), (snap) => {
         var data = snap.val() || {};
         window.tuanHienTaiGlobal = data.tuan_hien_tai || "tuan_1";
         
-        // Lấy danh sách tuần hiện tại, nếu không có thì lấy danh sách chung
         var ds = (data.danh_sach_tuan && data.danh_sach_tuan[window.tuanHienTaiGlobal]) 
                  ? data.danh_sach_tuan[window.tuanHienTaiGlobal] 
                  : (data.danh_sach || {});
@@ -348,11 +354,9 @@
         window.globalDanhSach = ds;
         window.globalLeaders = data.leaders || {};
         
-        // Cập nhật dropdown
         var select = document.getElementById('login-student-id');
         if(select) {
             select.innerHTML = '<option value="">-- Chọn tên của bạn --</option>';
-            // Sắp xếp tên theo tổ để học sinh dễ tìm
             var arr = Object.keys(ds).map(id => ({ id: id, ten: ds[id].ten, to: ds[id].to }));
             arr.sort((a, b) => a.to - b.to);
             
@@ -520,16 +524,41 @@
                 for (let id in danhSach) {
                     let hs = danhSach[id];
                     let diem = 100;
+                    
+                    // Thêm 2 biến để theo dõi lỗi vi phạm
+                    let tongTru = 0; 
+                    let soLoiNang = 0; 
+                    
                     if(duLieuDiem[id]) {
                         for(let thu in duLieuDiem[id]) {
                             for(let key in duLieuDiem[id][thu]) {
                                 let match = duLieuDiem[id][thu][key].ma_quy_uoc.match(/\(([-+]\d+)đ\)/);
-                                if(match) diem += parseInt(match[1]);
+                                if(match) {
+                                    let pts = parseInt(match[1]);
+                                    diem += pts;
+                                    
+                                    // Ghi nhận lịch sử vi phạm
+                                    if(pts < 0) {
+                                        tongTru += Math.abs(pts);
+                                        // Các lỗi bị trừ từ 8 điểm trở lên được xem là lỗi nặng (Mức 3 & 4)
+                                        if(pts <= -8) {
+                                            soLoiNang++;
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
                     
-                    arrHocSinh.push({ id: id, ten: hs.ten, to: hs.to, diem: diem });
+                    arrHocSinh.push({ 
+                        id: id, 
+                        ten: hs.ten, 
+                        to: hs.to, 
+                        diem: diem,
+                        tongTru: tongTru,
+                        soLoiNang: soLoiNang
+                    });
+                    
                     if(thongKeTo[hs.to]) {
                         thongKeTo[hs.to].tongDiem += diem; thongKeTo[hs.to].soHs += 1;
                     }
@@ -548,6 +577,41 @@
                 bangThongKe += `</tr></table>`;
                 document.getElementById('thong-ke-to').innerHTML = bangThongKe;
 
+                // LỌC VÀ VẼ BẢNG CẢNH BÁO 6 HỌC SINH TỆ NHẤT
+                // Thuật toán: Ưu tiên xếp Điểm (thấp lên trước) -> Số lỗi nặng (nhiều lên trước) -> Tổng trừ (nhiều lên trước)
+                arrHocSinh.sort((a, b) => {
+                    if (a.diem !== b.diem) return a.diem - b.diem;
+                    if (a.soLoiNang !== b.soLoiNang) return b.soLoiNang - a.soLoiNang;
+                    return b.tongTru - a.tongTru;
+                });
+                
+                var bottom6 = arrHocSinh.slice(0, 6);
+                var bangCanhBao = `<table style="width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px;">
+                    <tr style="background: #f4f7f6; text-align: left;">
+                        <th style="padding: 8px; border-bottom: 1px solid #ddd;">Họ và Tên</th>
+                        <th style="padding: 8px; border-bottom: 1px solid #ddd;">Tổ</th>
+                        <th style="padding: 8px; border-bottom: 1px solid #ddd;">Điểm</th>
+                        <th style="padding: 8px; border-bottom: 1px solid #ddd; text-align: center;">Lịch sử Vi phạm</th>
+                    </tr>`;
+                
+                bottom6.forEach(hs => {
+                    // Tạo nội dung cảnh báo vi phạm
+                    let textViPham = hs.tongTru > 0 ? `<span style="color:#c0392b; font-size: 13px;">-${hs.tongTru}đ</span>` : "-";
+                    if(hs.soLoiNang > 0) {
+                        textViPham += `<br><span style="font-size: 10px; background: #c0392b; color: white; padding: 2px 4px; border-radius: 4px; white-space: nowrap;">${hs.soLoiNang} Lỗi nặng</span>`;
+                    }
+
+                    bangCanhBao += `<tr>
+                        <td style="padding: 8px; border-bottom: 1px solid #ddd; text-align: left;">${hs.ten}</td>
+                        <td style="padding: 8px; border-bottom: 1px solid #ddd;">${hs.to}</td>
+                        <td style="padding: 8px; border-bottom: 1px solid #ddd; color: #e74c3c; font-weight:bold;">${hs.diem}</td>
+                        <td style="padding: 8px; border-bottom: 1px solid #ddd; text-align: center;">${textViPham}</td>
+                    </tr>`;
+                });
+                bangCanhBao += `</table>`;
+                document.getElementById('danh-sach-canh-bao').innerHTML = bangCanhBao;
+
+
                 // Vẽ Bảng Điểm & Nút cấp quyền Tổ trưởng
                 var bangDiemHTML = `<table style="width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px;">
                     <tr style="background: #f4f7f6; text-align: left;">
@@ -557,9 +621,11 @@
                         <th style="padding: 8px; border-bottom: 1px solid #ddd; text-align: center;">Quyền</th>
                     </tr>`;
 
-                arrHocSinh.sort((a, b) => { if (a.to !== b.to) return a.to - b.to; return 0; });
+                // Bảng chi tiết sẽ sắp xếp lại theo Tổ để dễ nhìn
+                var arrChiTiet = [...arrHocSinh];
+                arrChiTiet.sort((a, b) => { if (a.to !== b.to) return a.to - b.to; return 0; });
 
-                arrHocSinh.forEach(hs => {
+                arrChiTiet.forEach(hs => {
                     let mauDiem = hs.diem >= 80 ? "#27ae60" : "#e74c3c";
                     let isTT = leaders[hs.id] ? true : false;
                     
@@ -605,7 +671,6 @@
         }
         document.getElementById('danh-sach-to-truong').innerHTML = html;
         
-        // Active nút Tổ đúng theo Tổ của Tổ trưởng
         var buttons = document.querySelectorAll('#chon-to-to-truong .btn-day');
         buttons.forEach(b => b.classList.remove('active'));
         if(buttons[toDuocChon - 1]) buttons[toDuocChon - 1].classList.add('active');
@@ -659,7 +724,6 @@
     };
 
     window.chonTo = function(to, element) {
-        // KIỂM TRA QUYỀN TRƯỚC KHI CHUYỂN TỔ
         if(window.currentToTruongTo && window.currentToTruongTo != to) {
             alert("LỖI PHÂN QUYỀN: Bạn chỉ được phép quản lý Tổ " + window.currentToTruongTo + "!");
             return;
@@ -699,19 +763,17 @@
             document.getElementById('password').value = "";
             manHinhDangNhap.style.display = 'none';
             
-            // Kiểm tra xem Học sinh này có phải là Tổ trưởng không
             if(window.globalLeaders[hsId]) {
                 manHinhToTruong.style.display = 'block';
                 var toCuaHS = window.globalDanhSach[hsId].to;
-                window.currentToTruongTo = toCuaHS; // Lưu lại quyền để kiểm tra
+                window.currentToTruongTo = toCuaHS; 
 
-                // Ẩn hoàn toàn các nút tổ khác trên giao diện
                 var btnTos = document.querySelectorAll('#chon-to-to-truong .btn-day');
                 btnTos.forEach((btn, index) => {
                     if(index + 1 == toCuaHS) {
                         btn.style.display = 'inline-block';
                     } else {
-                        btn.style.display = 'none'; // Giấu nút của các tổ khác đi
+                        btn.style.display = 'none';
                     }
                 });
 
@@ -727,8 +789,7 @@
     };
     
     window.dangXuat = function() {
-        window.currentToTruongTo = null; // Xóa quyền khi đăng xuất
-
+        window.currentToTruongTo = null; 
         document.getElementById('login-screen').style.display = 'flex';
         document.getElementById('main-app').style.display = 'none';
         document.getElementById('admin-dashboard').style.display = 'none';
