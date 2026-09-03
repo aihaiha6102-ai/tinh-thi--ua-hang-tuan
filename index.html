@@ -197,7 +197,7 @@
         </div>
 
         <div class="scroll-row" style="margin-bottom: 10px;" id="chon-to-to-truong">
-            <button class="btn-day active" onclick="chonTo(1, this)">Tổ 1</button>
+            <button class="btn-day" onclick="chonTo(1, this)">Tổ 1</button>
             <button class="btn-day" onclick="chonTo(2, this)">Tổ 2</button>
             <button class="btn-day" onclick="chonTo(3, this)">Tổ 3</button>
             <button class="btn-day" onclick="chonTo(4, this)">Tổ 4</button>
@@ -333,6 +333,7 @@
     window.tuanHienTaiGlobal = "tuan_1";
     window.globalDanhSach = {};
     window.globalLeaders = {};
+    window.currentToTruongTo = null; // Biến lưu tổ của Tổ trưởng đang đăng nhập
 
     // Nạp danh sách học sinh vào dropdown lúc mới mở web
     onValue(ref(db, 'quan_ly_10a11/cai_dat'), (snap) => {
@@ -658,6 +659,12 @@
     };
 
     window.chonTo = function(to, element) {
+        // KIỂM TRA QUYỀN TRƯỚC KHI CHUYỂN TỔ
+        if(window.currentToTruongTo && window.currentToTruongTo != to) {
+            alert("LỖI PHÂN QUYỀN: Bạn chỉ được phép quản lý Tổ " + window.currentToTruongTo + "!");
+            return;
+        }
+
         var buttons = document.querySelectorAll('#chon-to-to-truong .btn-day');
         buttons.forEach(b => b.classList.remove('active'));
         element.classList.add('active');
@@ -696,6 +703,18 @@
             if(window.globalLeaders[hsId]) {
                 manHinhToTruong.style.display = 'block';
                 var toCuaHS = window.globalDanhSach[hsId].to;
+                window.currentToTruongTo = toCuaHS; // Lưu lại quyền để kiểm tra
+
+                // Ẩn hoàn toàn các nút tổ khác trên giao diện
+                var btnTos = document.querySelectorAll('#chon-to-to-truong .btn-day');
+                btnTos.forEach((btn, index) => {
+                    if(index + 1 == toCuaHS) {
+                        btn.style.display = 'inline-block';
+                    } else {
+                        btn.style.display = 'none'; // Giấu nút của các tổ khác đi
+                    }
+                });
+
                 window.taiDuLieuToTruong(toCuaHS); 
             } else {
                 manHinhHocSinh.style.display = 'block';
@@ -708,6 +727,8 @@
     };
     
     window.dangXuat = function() {
+        window.currentToTruongTo = null; // Xóa quyền khi đăng xuất
+
         document.getElementById('login-screen').style.display = 'flex';
         document.getElementById('main-app').style.display = 'none';
         document.getElementById('admin-dashboard').style.display = 'none';
