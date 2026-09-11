@@ -14,7 +14,6 @@
         .scroll-row::-webkit-scrollbar { display: none; }
         
         .btn-wrap { display: flex; flex-wrap: wrap; gap: 8px; padding-bottom: 8px; }
-        
         .nowrap-text { white-space: nowrap; }
 
         #login-screen { padding: 40px 20px; text-align: center; height: 100vh; display: flex; flex-direction: column; justify-content: center; background: white; }
@@ -45,21 +44,21 @@
         .btn-cong-dacbiet { background: #16a085; }
 
         .bottom-bar { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; background: white; padding: 15px; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); z-index: 100; }
-        
         .box-nhap-to { width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #ccc; font-family: inherit; margin-bottom: 8px; }
-        
         .chu-giai-box { background: #fff3cd; border: 1px solid #ffe69c; padding: 12px; border-radius: 8px; font-size: 13px; color: #664d03; margin-bottom: 15px; display: none; line-height: 1.6; }
         
         .login-tabs { display: flex; gap: 10px; margin-bottom: 20px; }
         .login-tabs button { flex: 1; padding: 10px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; }
-        
         .badge-tt { background: #f39c12; color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px; margin-left: 5px; }
+        
+        .daily-history-list { background: #f8f9fa; padding: 8px; border-radius: 6px; margin-top: 10px; font-size: 13px; color: #555; }
+        .daily-record { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid #eee; }
+        .btn-delete-record { color: #e74c3c; cursor: pointer; font-weight: bold; border: none; background: none; padding: 0 5px; }
     </style>
 </head>
 <body>
 
 <div class="app-container">
-    <!-- MÀN HÌNH ĐĂNG NHẬP -->
     <div id="login-screen">
         <h2 style="color: #2980b9; margin-bottom: 5px;" class="nowrap-text">HỆ THỐNG QUẢN LÝ</h2>
         <p style="color: #7f8c8d; margin-bottom: 30px;" class="nowrap-text">Lớp 10A11 - THPT</p>
@@ -84,16 +83,44 @@
         <button class="btn-primary nowrap-text" onclick="login()">ĐĂNG NHẬP</button>
     </div>
 
-    <!-- MÀN HÌNH ADMIN (Giáo viên chủ nhiệm) -->
     <div id="admin-dashboard">
         <div class="header-title nowrap-text">BẢNG TỔNG HỢP - 10A11</div>
         <div class="header-sub nowrap-text">Trạng thái: Cập nhật tự động (Real-time)</div>
         
+        <!-- KHU VỰC CHẤM ĐIỂM DÀNH CHO GIÁO VIÊN -->
+        <div class="student-card" style="margin-bottom: 15px; border-left: 4px solid #2980b9;">
+            <div class="section-title nowrap-text" style="color: #2980b9;">✍️ CHẤM ĐIỂM HỌC SINH (GIÁO VIÊN)</div>
+            
+            <select id="chon-tuan-gv-view" style="width: 100%; padding: 8px; margin-bottom: 10px; border-radius: 6px; border: 1px solid #2980b9; color: #2980b9; font-weight: bold;" onchange="doiTuanGiaoVien(this.value)">
+                <!-- Sẽ nạp danh sách tuần bằng JS -->
+            </select>
+
+            <div class="scroll-row" style="margin-bottom: 10px;" id="chon-to-gv">
+                <button class="btn-day active" onclick="chonToGV(1, this)">Tổ 1</button>
+                <button class="btn-day" onclick="chonToGV(2, this)">Tổ 2</button>
+                <button class="btn-day" onclick="chonToGV(3, this)">Tổ 3</button>
+                <button class="btn-day" onclick="chonToGV(4, this)">Tổ 4</button>
+            </div>
+
+            <div class="scroll-row" style="margin-bottom: 10px;" id="chon-ngay-gv">
+                <button class="btn-day active" onclick="chonNgayGV('Thứ 2', this)">Thứ 2</button>
+                <button class="btn-day" onclick="chonNgayGV('Thứ 3', this)">Thứ 3</button>
+                <button class="btn-day" onclick="chonNgayGV('Thứ 4', this)">Thứ 4</button>
+                <button class="btn-day" onclick="chonNgayGV('Thứ 5', this)">Thứ 5</button>
+                <button class="btn-day" onclick="chonNgayGV('Thứ 6', this)">Thứ 6</button>
+                <button class="btn-day" onclick="chonNgayGV('Thứ 7', this)">Thứ 7</button>
+            </div>
+
+            <div id="danh-sach-cham-diem-gv">
+                <!-- Danh sách học sinh để GV chấm điểm nạp tự động -->
+            </div>
+        </div>
+
         <div class="student-card" style="margin-bottom: 15px;">
             <div class="section-title nowrap-text">⚙️ NHẬP DANH SÁCH & CÀI ĐẶT TUẦN</div>
             
             <select id="chon-tuan-admin" style="width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 6px; border: 1px solid #ccc; font-weight: bold;">
-                <!-- 35 Tuần sẽ được tự động tạo -->
+                <!-- 35 Tuần -->
             </select>
             
             <textarea id="nhap-to-1" rows="3" class="box-nhap-to" placeholder="Dán danh sách Tổ 1 (Mỗi dòng 1 tên)"></textarea>
@@ -111,7 +138,6 @@
             </div>
         </div>
 
-        <!-- BẢNG CẢNH BÁO MỚI CÓ XẾP HẠNG THEO LỖI NẶNG -->
         <div class="student-card">
             <div class="section-title nowrap-text">⚠️ 6 HỌC SINH ĐIỂM THẤP NHẤT</div>
             <div id="danh-sach-canh-bao" style="overflow-x: auto; margin-top: 10px; text-align: center; color: #7f8c8d;">
@@ -122,7 +148,7 @@
         <div class="student-card">
             <div class="section-title nowrap-text">📋 BẢNG ĐIỂM CHI TIẾT (Phân quyền TT)</div>
             <div id="bang-diem-chi-tiet" style="overflow-x: auto; margin-top: 10px; text-align: center; color: #7f8c8d;">
-                Đang tải dữ liệu từ máy chủ...
+                Đang tải dữ liệu...
             </div>
         </div>
         
@@ -131,12 +157,15 @@
         </div>
     </div>
 
-    <!-- MÀN HÌNH CHÍNH (Tổ trưởng) -->
     <div id="main-app">
         <div class="header-title nowrap-text">Giao diện Tổ Trưởng</div>
         <div id="hien-thi-tuan" class="header-sub nowrap-text">Đang tải dữ liệu...</div>
 
-        <!-- BẢNG CHÚ GIẢI TỪ VIẾT TẮT CHO TỔ TRƯỞNG -->
+        <select id="chon-tuan-tt" style="width: 100%; padding: 8px; margin-bottom: 10px; border-radius: 6px; border: 1px solid #f39c12; color: #d35400; font-weight: bold;" onchange="doiTuanToTruong(this.value)">
+            <!-- Sẽ nạp danh sách tuần bằng JS -->
+        </select>
+
+        <!-- CHÚ GIẢI CHO TỔ TRƯỞNG & HỌC SINH TƯƠNG TỰ (Đã cập nhật mã mới) -->
         <button class="btn-primary" style="background: #f39c12; margin-bottom: 10px; padding: 10px; font-size: 14px;" onclick="togglePanel('bang-chu-giai-tt')">📖 XEM GIẢI THÍCH MÃ ĐIỂM</button>
         <div id="bang-chu-giai-tt" class="chu-giai-box" style="max-height: 400px; overflow-y: auto;">
             <h4 style="color: #c0392b; border-bottom: 1px solid #c0392b; padding-bottom: 5px; margin-bottom: 10px;">🔴 MÃ TRỪ ĐIỂM</h4>
@@ -151,7 +180,7 @@
 
             <strong style="color: #2c3e50;">Mức 2: Nề nếp & Học tập (-5 đến -7đ)</strong>
             <ul style="padding-left: 20px; margin-bottom: 15px; font-size: 13px;">
-                <li><b>T5 (-5đ):</b> Đi học trễ (trong khung giờ 6h40-6h45). <i>(Từ lần thứ 3 tính T10)</i></li>
+                <li><b>T5 (-5đ):</b> Đi học trễ (trong khung giờ 7h50-7h55). <i>(Từ lần 3 tính T10)</i></li>
                 <li><b>BT5 (-5đ):</b> Không làm bài tập / Không chuẩn bị bài. <i>(Ghi rõ môn)</i></li>
                 <li><b>ĐP4 (-4đ):</b> Vi phạm đồng phục (bảng tên, giày, áo Đoàn...).</li>
                 <li><b>GOM5 (-5đ):</b> Gây ồn, mất trật tự ảnh hưởng nhiều người.</li>
@@ -165,7 +194,9 @@
 
             <strong style="color: #2c3e50;">Mức 3: Kỷ luật & Thái độ (-8 đến -15đ)</strong>
             <ul style="padding-left: 20px; margin-bottom: 15px; font-size: 13px;">
-                <li><b>T10 (-10đ):</b> Nghỉ không phép / Đi trễ sau 6h45.</li>
+                <li><b>T10 (-10đ):</b> Nghỉ không phép / Đi trễ sau 7h55.</li>
+                <li><b>BC10 (-10đ):</b> Tự ý bỏ về, cúp tiết.</li>
+                <li><b>KL10 (-10đ):</b> Không làm nhiệm vụ được giao, không hoàn thành đúng hạn.</li>
                 <li><b>N2 (-2đ):</b> Nghỉ có phép. <i>(Để công bằng chuyên cần)</i></li>
                 <li><b>KG8 (-8đ):</b> Không gỡ điểm kém trong tuần.</li>
                 <li><b>NT10 (-10đ):</b> Nói tục, chửi thề.</li>
@@ -175,32 +206,21 @@
             <strong style="color: #2c3e50;">Mức 4: Vi phạm nghiêm trọng (-20 đến -40đ)</strong>
             <ul style="padding-left: 20px; margin-bottom: 15px; font-size: 13px;">
                 <li><b>ĐT20 (-20đ):</b> Sử dụng điện thoại.</li>
+                <li><b>TM20 (-20đ):</b> Nhuộm tóc sai quy định.</li>
                 <li><b>GL30 (-30đ):</b> Gian lận thi cử, kiểm tra.</li>
-                <li><b>LN40 (-40đ):</b> Lỗi nặng (Hút thuốc, đánh nhau, vô lễ, vi phạm ATGT...). <i>(Xử lý theo nội quy)</i></li>
+                <li><b>LN40 (-40đ):</b> Lỗi nặng (Hút thuốc, đánh nhau, vô lễ...).</li>
             </ul>
 
             <h4 style="color: #27ae60; border-bottom: 1px solid #27ae60; padding-bottom: 5px; margin-bottom: 10px; margin-top: 20px;">🟢 MÃ CỘNG ĐIỂM</h4>
 
-            <strong style="color: #2c3e50;">Mức 1: Khuyến khích hàng ngày (+2 đến +4đ)</strong>
+            <strong style="color: #2c3e50;">Mức 1, 2, 3:</strong>
             <ul style="padding-left: 20px; margin-bottom: 15px; font-size: 13px;">
                 <li><b>PB (+2đ):</b> Phát biểu xây dựng bài.</li>
-            </ul>
-
-            <strong style="color: #2c3e50;">Mức 2: Ghi nhận đóng góp (+5 đến +7đ)</strong>
-            <ul style="padding-left: 20px; margin-bottom: 15px; font-size: 13px;">
-                <li><b>Đ8 (+4đ):</b> Đạt điểm 8.</li>
-                <li><b>Đ9 (+5đ):</b> Đạt điểm 9.</li>
-                <li><b>Đ10 (+7đ):</b> Đạt điểm 10.</li>
+                <li><b>Đ8 (+4đ), Đ9 (+5đ), Đ10 (+7đ):</b> Đạt điểm cao.</li>
                 <li><b>TN (+5đ):</b> Tích cực tham gia hoạt động nhóm/tổ.</li>
-            </ul>
-
-            <strong style="color: #2c3e50;">Mức 3: Tuyên dương đặc biệt (+8 đến +10đ)</strong>
-            <ul style="padding-left: 20px; margin-bottom: 15px; font-size: 13px;">
-                <li><b>HĐ (+8đ):</b> Có hành động đẹp, gương người tốt việc tốt.</li>
-                <li><b>SK (+10đ):</b> Có sáng kiến hay, đóng góp hiệu quả cho lớp.</li>
-                <li><b>PT (+10đ):</b> Tham gia tích cực phong trào trường lớp.</li>
-                <li><b>CC (+5đ):</b> Thưởng chuyên cần cuối tuần (không nghỉ, không trễ).</li>
-                <li><b>CB (+5đ):</b> Thưởng cán bộ lớp/tổ hoàn thành tốt nhiệm vụ.</li>
+                <li><b>HĐ (+8đ):</b> Có hành động đẹp, gương người tốt.</li>
+                <li><b>SK (+10đ):</b> Sáng kiến hay. <b>PT (+10đ):</b> Phong trào.</li>
+                <li><b>CC (+5đ):</b> Chuyên cần tuần. <b>CB (+5đ):</b> Cán bộ tốt.</li>
             </ul>
         </div>
 
@@ -212,16 +232,16 @@
         </div>
 
         <div class="scroll-row" style="margin-bottom: 10px;" id="chon-ngay-to-truong">
-            <button class="btn-day active" onclick="chonNgay(this)">Thứ 2</button>
-            <button class="btn-day" onclick="chonNgay(this)">Thứ 3</button>
-            <button class="btn-day" onclick="chonNgay(this)">Thứ 4</button>
-            <button class="btn-day" onclick="chonNgay(this)">Thứ 5</button>
-            <button class="btn-day" onclick="chonNgay(this)">Thứ 6</button>
-            <button class="btn-day" onclick="chonNgay(this)">Thứ 7</button>
+            <button class="btn-day active" onclick="chonNgay('Thứ 2', this)">Thứ 2</button>
+            <button class="btn-day" onclick="chonNgay('Thứ 3', this)">Thứ 3</button>
+            <button class="btn-day" onclick="chonNgay('Thứ 4', this)">Thứ 4</button>
+            <button class="btn-day" onclick="chonNgay('Thứ 5', this)">Thứ 5</button>
+            <button class="btn-day" onclick="chonNgay('Thứ 6', this)">Thứ 6</button>
+            <button class="btn-day" onclick="chonNgay('Thứ 7', this)">Thứ 7</button>
         </div>
 
         <div id="danh-sach-to-truong">
-            <!-- Danh sách học sinh sẽ được nạp tự động vào đây -->
+            <!-- Danh sách tổ trưởng chấm nạp tự động -->
         </div>
 
         <div id="bottom-bar-action" class="bottom-bar">
@@ -229,77 +249,17 @@
         </div>
     </div>
     
-    <!-- MÀN HÌNH HỌC SINH (Thành viên xem điểm) -->
     <div id="student-dashboard">
         <div class="header-title nowrap-text" id="student-name-title">Xin chào, ...</div>
-        <div class="header-sub nowrap-text" id="student-tuan-title">Tuần ...</div>
+        
+        <select id="chon-tuan-hs" style="width: 100%; padding: 8px; margin-top: 5px; margin-bottom: 15px; border-radius: 6px; border: 1px solid #2c3e50; font-weight: bold;" onchange="doiTuanHocSinh(this.value)">
+            <!-- Sẽ nạp danh sách tuần bằng JS -->
+        </select>
 
-        <!-- BẢNG CHÚ GIẢI TỪ VIẾT TẮT CHO HỌC SINH -->
+        <!-- BẢNG CHÚ GIẢI CHO HỌC SINH (sẽ dùng Javascript clone nội dung trên để tránh trùng lặp code HTML) -->
         <button class="btn-primary" style="background: #f39c12; margin-bottom: 15px; padding: 10px; font-size: 14px;" onclick="togglePanel('bang-chu-giai-hs')">📖 XEM HƯỚNG DẪN CÁC MÃ ĐIỂM</button>
         <div id="bang-chu-giai-hs" class="chu-giai-box" style="max-height: 400px; overflow-y: auto;">
-            <h4 style="color: #c0392b; border-bottom: 1px solid #c0392b; padding-bottom: 5px; margin-bottom: 10px;">🔴 MÃ TRỪ ĐIỂM</h4>
-
-            <strong style="color: #2c3e50;">Mức 1: Sơ suất nhỏ (-2 đến -4đ)</strong>
-            <ul style="padding-left: 20px; margin-bottom: 15px; font-size: 13px;">
-                <li><b>NC2 (-2đ):</b> Nói chuyện riêng, làm ồn nhỏ. <i>(Ghi nhận khi bị nhắc nhở)</i></li>
-                <li><b>LVR3 (-3đ):</b> Làm việc riêng không gây ảnh hưởng lớn.</li>
-                <li><b>DC2 (-2đ):</b> Thiếu 1 dụng cụ học tập (vở, sách, compa...).</li>
-                <li><b>VS3 (-3đ):</b> Vứt rác không đúng nơi quy định.</li>
-            </ul>
-
-            <strong style="color: #2c3e50;">Mức 2: Nề nếp & Học tập (-5 đến -7đ)</strong>
-            <ul style="padding-left: 20px; margin-bottom: 15px; font-size: 13px;">
-                <li><b>T5 (-5đ):</b> Đi học trễ (trong khung giờ 6h40-6h45). <i>(Từ lần thứ 3 tính T10)</i></li>
-                <li><b>BT5 (-5đ):</b> Không làm bài tập / Không chuẩn bị bài. <i>(Ghi rõ môn)</i></li>
-                <li><b>ĐP4 (-4đ):</b> Vi phạm đồng phục (bảng tên, giày, áo Đoàn...).</li>
-                <li><b>GOM5 (-5đ):</b> Gây ồn, mất trật tự ảnh hưởng nhiều người.</li>
-                <li><b>TTN7 (-7đ):</b> Trực nhật chưa sạch, làm qua loa.</li>
-                <li><b>HĐ7 (-7đ):</b> Chưa tích cực tham gia hoạt động nhóm/tổ.</li>
-                <li><b>Đ0 (-7đ):</b> Điểm 0 chưa gỡ trong tuần.</li>
-                <li><b>Đ1 (-5đ):</b> Điểm 1 chưa gỡ trong tuần.</li>
-                <li><b>Đ2 (-3đ):</b> Điểm 2 chưa gỡ trong tuần.</li>
-                <li><b>Đ3 (-2đ):</b> Điểm 3 chưa gỡ trong tuần.</li>
-            </ul>
-
-            <strong style="color: #2c3e50;">Mức 3: Kỷ luật & Thái độ (-8 đến -15đ)</strong>
-            <ul style="padding-left: 20px; margin-bottom: 15px; font-size: 13px;">
-                <li><b>T10 (-10đ):</b> Nghỉ không phép / Đi trễ sau 6h45.</li>
-                <li><b>N2 (-2đ):</b> Nghỉ có phép. <i>(Để công bằng chuyên cần)</i></li>
-                <li><b>KG8 (-8đ):</b> Không gỡ điểm kém trong tuần.</li>
-                <li><b>NT10 (-10đ):</b> Nói tục, chửi thề.</li>
-                <li><b>TĐ15 (-15đ):</b> Thái độ không tôn trọng GV, bạn bè.</li>
-            </ul>
-
-            <strong style="color: #2c3e50;">Mức 4: Vi phạm nghiêm trọng (-20 đến -40đ)</strong>
-            <ul style="padding-left: 20px; margin-bottom: 15px; font-size: 13px;">
-                <li><b>ĐT20 (-20đ):</b> Sử dụng điện thoại.</li>
-                <li><b>GL30 (-30đ):</b> Gian lận thi cử, kiểm tra.</li>
-                <li><b>LN40 (-40đ):</b> Lỗi nặng (Hút thuốc, đánh nhau, vô lễ, vi phạm ATGT...). <i>(Xử lý theo nội quy)</i></li>
-            </ul>
-
-            <h4 style="color: #27ae60; border-bottom: 1px solid #27ae60; padding-bottom: 5px; margin-bottom: 10px; margin-top: 20px;">🟢 MÃ CỘNG ĐIỂM</h4>
-
-            <strong style="color: #2c3e50;">Mức 1: Khuyến khích hàng ngày (+2 đến +4đ)</strong>
-            <ul style="padding-left: 20px; margin-bottom: 15px; font-size: 13px;">
-                <li><b>PB (+2đ):</b> Phát biểu xây dựng bài.</li>
-            </ul>
-
-            <strong style="color: #2c3e50;">Mức 2: Ghi nhận đóng góp (+5 đến +7đ)</strong>
-            <ul style="padding-left: 20px; margin-bottom: 15px; font-size: 13px;">
-                <li><b>Đ8 (+4đ):</b> Đạt điểm 8.</li>
-                <li><b>Đ9 (+5đ):</b> Đạt điểm 9.</li>
-                <li><b>Đ10 (+7đ):</b> Đạt điểm 10.</li>
-                <li><b>TN (+5đ):</b> Tích cực tham gia hoạt động nhóm/tổ.</li>
-            </ul>
-
-            <strong style="color: #2c3e50;">Mức 3: Tuyên dương đặc biệt (+8 đến +10đ)</strong>
-            <ul style="padding-left: 20px; margin-bottom: 15px; font-size: 13px;">
-                <li><b>HĐ (+8đ):</b> Có hành động đẹp, gương người tốt việc tốt.</li>
-                <li><b>SK (+10đ):</b> Có sáng kiến hay, đóng góp hiệu quả cho lớp.</li>
-                <li><b>PT (+10đ):</b> Tham gia tích cực phong trào trường lớp.</li>
-                <li><b>CC (+5đ):</b> Thưởng chuyên cần cuối tuần (không nghỉ, không trễ).</li>
-                <li><b>CB (+5đ):</b> Thưởng cán bộ lớp/tổ hoàn thành tốt nhiệm vụ.</li>
-            </ul>
+            <!-- Nội dung clone từ bang-chu-giai-tt -->
         </div>
 
         <div class="student-card" style="text-align: center;">
@@ -323,7 +283,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-    import { getDatabase, ref, set, push, onValue } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
+    import { getDatabase, ref, set, push, remove, onValue } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyDMOhzRcgb72Miloscik6Xwb7SDR32R3qg",
@@ -338,10 +298,85 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
+    // Copy nội dung chú giải từ Tổ trưởng sang Học sinh để đồng bộ
+    document.getElementById('bang-chu-giai-hs').innerHTML = document.getElementById('bang-chu-giai-tt').innerHTML;
+
     window.tuanHienTaiGlobal = "tuan_1";
     window.globalDanhSach = {};
     window.globalLeaders = {};
-    window.currentToTruongTo = null;
+    
+    // Biến trạng thái để quản lý việc đang xem ngày nào, tổ nào
+    window.currentToTruongTo = null; 
+    window.currentNgayToTruong = "Thứ 2";
+    window.currentToGV = 1;
+    window.currentNgayGV = "Thứ 2";
+    
+    // Biến quản lý Tuần Đang Xem (Viewing Week)
+    window.viewingWeekGV = null;
+    window.viewingWeekTT = null;
+    window.viewingWeekHS = null;
+    window.currentHSId = null;
+
+    // Mảng lưu trữ các hàm unsubscribe (để xóa lắng nghe Firebase cũ khi đổi ngày)
+    window.activeListeners = [];
+
+    window.getActionPanelTemplate = function(isEditable) {
+        if (!isEditable) {
+            return `
+                <div style="background: #f8d7da; color: #721c24; padding: 10px; border-radius: 6px; margin-bottom: 10px; text-align: center; font-size: 13px; font-weight: bold;">
+                    🔒 ĐÃ CHỐT SỔ. BẠN KHÔNG THỂ CHẤM ĐIỂM TUẦN CŨ.
+                </div>
+                <div class="section-title" style="color: #2980b9;">🕒 CÁC LỖI ĐÃ NHẬP TRONG NGÀY NÀY</div>
+                <div class="daily-history-list history-container">
+                    <i>Đang tải dữ liệu ngày...</i>
+                </div>
+            `;
+        }
+
+        return `
+            <div class="section-title nowrap-text">🔴 ĐIỂM TRỪ (Vi phạm nội quy)</div>
+            <div class="btn-wrap">
+                <button class="btn-code btn-tru-nhe" data-code="NC2 (-2đ)">NC2 (-2đ)</button>
+            <button class="btn-code btn-tru-dacbiet" data-code="TĐ15 (-15đ)">TĐ15 (-15đ)</button>
+        </div>
+        <div class="btn-wrap">
+            <button class="btn-code btn-tru-dacbiet" data-code="TM20 (-20đ)">TM20 (-20đ)</button>
+            <button class="btn-code btn-tru-dacbiet" data-code="ĐT20 (-20đ)">ĐT20 (-20đ)</button>
+            <button class="btn-code btn-tru-dacbiet" data-code="GL30 (-30đ)">GL30 (-30đ)</button>
+            <button class="btn-code btn-tru-dacbiet" data-code="LN40 (-40đ)">LN40 (-40đ)</button>
+        </div>
+        
+        <div class="section-title nowrap-text">🔴 ĐIỂM TRỪ (Học tập)</div>
+        <div class="btn-wrap">
+            <button class="btn-code btn-tru-dacbiet" data-code="Đ0 (-7đ)">Đ0 (-7đ)</button>
+            <button class="btn-code btn-tru-nang" data-code="Đ1 (-5đ)">Đ1 (-5đ)</button>
+            <button class="btn-code btn-tru-nang" data-code="Đ2 (-3đ)">Đ2 (-3đ)</button>
+            <button class="btn-code btn-tru-nang" data-code="Đ3 (-2đ)">Đ3 (-2đ)</button>
+        </div>
+
+        <div class="section-title nowrap-text">🟢 ĐIỂM CỘNG (Thành tích)</div>
+        <div class="btn-wrap">
+            <button class="btn-code btn-cong" data-code="PB (+2đ)">PB (+2đ)</button>
+            <button class="btn-code btn-cong" data-code="Đ8 (+4đ)">Đ8 (+4đ)</button>
+            <button class="btn-code btn-cong" data-code="Đ9 (+5đ)">Đ9 (+5đ)</button>
+            <button class="btn-code btn-cong" data-code="Đ10 (+7đ)">Đ10 (+7đ)</button>
+            <button class="btn-code btn-cong" data-code="TN (+5đ)">TN (+5đ)</button>
+        </div>
+        <div class="btn-wrap">
+            <button class="btn-code btn-cong-dacbiet" data-code="HĐ (+8đ)">HĐ (+8đ)</button>
+            <button class="btn-code btn-cong-dacbiet" data-code="SK (+10đ)">SK (+10đ)</button>
+            <button class="btn-code btn-cong-dacbiet" data-code="PT (+10đ)">PT (+10đ)</button>
+            <button class="btn-code btn-cong-dacbiet" data-code="CC (+5đ)">CC (+5đ)</button>
+            <button class="btn-code btn-cong-dacbiet" data-code="CB (+5đ)">CB (+5đ)</button>
+        </div>
+            <div class="section-title" style="margin-top: 15px; border-top: 1px dashed #ccc; padding-top: 10px; color: #2980b9;">
+                🕒 CÁC LỖI ĐÃ NHẬP TRONG NGÀY (Kiểm tra dư/thiếu)
+            </div>
+            <div class="daily-history-list history-container">
+                <i>Đang tải dữ liệu ngày...</i>
+            </div>
+        `;
+    };
 
     onValue(ref(db, 'quan_ly_10a11/cai_dat'), (snap) => {
         var data = snap.val() || {};
@@ -369,58 +404,6 @@
         }
     });
 
-    const actionPanelTemplate = `
-        <div class="section-title nowrap-text">🔴 ĐIỂM TRỪ (Vi phạm nội quy)</div>
-        <div class="btn-wrap">
-            <button class="btn-code btn-tru-nhe">NC2 (-2đ)</button>
-            <button class="btn-code btn-tru-nhe">LVR3 (-3đ)</button>
-            <button class="btn-code btn-tru-nhe">DC2 (-2đ)</button>
-            <button class="btn-code btn-tru-nhe">VS3 (-3đ)</button>
-            <button class="btn-code btn-tru-nhe">N2 (-2đ)</button>
-        </div>
-        <div class="btn-wrap">
-            <button class="btn-code btn-tru-nang">T5 (-5đ)</button>
-            <button class="btn-code btn-tru-nang">BT5 (-5đ)</button>
-            <button class="btn-code btn-tru-nang">ĐP4 (-4đ)</button>
-            <button class="btn-code btn-tru-nang">GOM5 (-5đ)</button>
-            <button class="btn-code btn-tru-nang">TTN7 (-7đ)</button>
-            <button class="btn-code btn-tru-nang">HĐ7 (-7đ)</button>
-            <button class="btn-code btn-tru-nang">KG8 (-8đ)</button>
-        </div>
-        <div class="btn-wrap">
-            <button class="btn-code btn-tru-dacbiet">T10 (-10đ)</button>
-            <button class="btn-code btn-tru-dacbiet">NT10 (-10đ)</button>
-            <button class="btn-code btn-tru-dacbiet">TĐ15 (-15đ)</button>
-            <button class="btn-code btn-tru-dacbiet">ĐT20 (-20đ)</button>
-            <button class="btn-code btn-tru-dacbiet">GL30 (-30đ)</button>
-            <button class="btn-code btn-tru-dacbiet">LN40 (-40đ)</button>
-        </div>
-        
-        <div class="section-title nowrap-text">🔴 ĐIỂM TRỪ (Học tập yếu kém)</div>
-        <div class="btn-wrap">
-            <button class="btn-code btn-tru-dacbiet">Đ0 (-7đ)</button>
-            <button class="btn-code btn-tru-nang">Đ1 (-5đ)</button>
-            <button class="btn-code btn-tru-nang">Đ2 (-3đ)</button>
-            <button class="btn-code btn-tru-nang">Đ3 (-2đ)</button>
-        </div>
-
-        <div class="section-title nowrap-text">🟢 ĐIỂM CỘNG (Thành tích)</div>
-        <div class="btn-wrap">
-            <button class="btn-code btn-cong">PB (+2đ)</button>
-            <button class="btn-code btn-cong">Đ8 (+4đ)</button>
-            <button class="btn-code btn-cong">Đ9 (+5đ)</button>
-            <button class="btn-code btn-cong">Đ10 (+7đ)</button>
-            <button class="btn-code btn-cong">TN (+5đ)</button>
-        </div>
-        <div class="btn-wrap">
-            <button class="btn-code btn-cong-dacbiet">HĐ (+8đ)</button>
-            <button class="btn-code btn-cong-dacbiet">SK (+10đ)</button>
-            <button class="btn-code btn-cong-dacbiet">PT (+10đ)</button>
-            <button class="btn-code btn-cong-dacbiet">CC (+5đ)</button>
-            <button class="btn-code btn-cong-dacbiet">CB (+5đ)</button>
-        </div>
-    `;
-
     window.switchTab = function(tab) {
         var btnGv = document.getElementById('tab-gv');
         var btnHs = document.getElementById('tab-hs');
@@ -437,6 +420,84 @@
         }
     };
 
+    window.xoaLoi = function(hsId, thu, key, tuan) {
+        if(confirm("Bạn có chắc chắn muốn XÓA bản ghi này không?")) {
+            remove(ref(db, `quan_ly_10a11/diem/${tuan}/${hsId}/${thu}/${key}`))
+            .then(() => {
+                // Sẽ tự động update nhờ onValue
+            }).catch((err) => {
+                alert("Lỗi khi xóa: " + err.message);
+            });
+        }
+    };
+
+    function clearAllListeners() {
+        window.activeListeners.forEach(unsubscribe => unsubscribe());
+        window.activeListeners = [];
+    }
+
+    function loadDailyHistoryForStudent(hsId, thu, containerElement, isEditable, tuan) {
+        var refPath = ref(db, `quan_ly_10a11/diem/${tuan}/${hsId}/${thu}`);
+        
+        // Lắng nghe realtime
+        const unsubscribe = onValue(refPath, (snap) => {
+            var data = snap.val();
+            if(!data) {
+                containerElement.innerHTML = "<div style='color: #aaa; text-align:center;'>Chưa có dữ liệu chấm ngày này.</div>";
+                return;
+            }
+            
+            var html = "";
+            for(let key in data) {
+                let color = data[key].ma_quy_uoc.includes("-") ? "#c0392b" : "#27ae60";
+                let btnXoa = isEditable ? `<button class="btn-delete-record" onclick="xoaLoi('${hsId}', '${thu}', '${key}', '${tuan}')">❌ Xóa</button>` : "";
+                html += `
+                <div class="daily-record">
+                    <span style="color: ${color}; font-weight: 500;">${data[key].ma_quy_uoc}</span>
+                    ${btnXoa}
+                </div>`;
+            }
+            containerElement.innerHTML = html;
+        });
+        
+        window.activeListeners.push(unsubscribe);
+    }
+
+    // Hàm này dùng cho cả Tổ trưởng và Giáo viên
+    function renderDanhSachChamDiem(toDuocChon, containerId, prefixId, currentThu, isEditable, tuanDangXem) {
+        var ds = window.globalDanhSach;
+        var html = "";
+        var count = 0;
+
+        for(let id in ds) {
+            if(ds[id].to == toDuocChon) {
+                count++;
+                html += `<div class="student-card">
+                    <div class="student-header">
+                        <div class="student-name nowrap-text">${ds[id].ten}</div>
+                        <button class="btn-toggle nowrap-text" onclick="togglePanel('${prefixId}-panel-${id}')">Xem/Chấm ▼</button>
+                    </div>
+                    <div id="${prefixId}-panel-${id}" class="action-panel" data-id="${id}" data-context="${prefixId}">
+                        ${window.getActionPanelTemplate(isEditable)}
+                    </div>
+                </div>`;
+            }
+        }
+        
+        if (count === 0) html = "<div style='text-align:center; color:#777;'>Tổ này chưa có học sinh.</div>";
+        document.getElementById(containerId).innerHTML = html;
+
+        // Sau khi render HTML, gán listener lắng nghe lịch sử cho các học sinh hiển thị
+        for(let id in ds) {
+            if(ds[id].to == toDuocChon) {
+                let historyContainer = document.querySelector(`#${prefixId}-panel-${id} .history-container`);
+                if(historyContainer) {
+                    loadDailyHistoryForStudent(id, currentThu, historyContainer, isEditable, tuanDangXem);
+                }
+            }
+        }
+    }
+
     window.luuCaiDat = function() {
         var tuan = document.getElementById('chon-tuan-admin').value;
         var to1 = document.getElementById('nhap-to-1').value.trim();
@@ -449,7 +510,7 @@
             return; 
         }
 
-        var xoaDiemCu = confirm("HỆ THỐNG PHÁT HIỆN LƯU DANH SÁCH MỚI\n\nBạn có muốn XÓA SẠCH toàn bộ điểm nháp của " + tuan + " để làm mới tất cả học sinh về 100 điểm không?\n\n- Chọn OK: Xóa sạch điểm cũ của tuần này.\n- Chọn Cancel: Giữ nguyên điểm cũ.");
+        var xoaDiemCu = confirm("LƯU Ý: Bạn có muốn XÓA SẠCH toàn bộ điểm nháp của " + tuan + " để làm mới tất cả học sinh về 100 điểm không?\n\n- Chọn OK: Xóa sạch điểm cũ của tuần này.\n- Chọn Cancel: Giữ nguyên điểm cũ.");
 
         function taoIdTuTen(ten) {
             var str = ten.trim().toLowerCase();
@@ -503,19 +564,35 @@
         }
     };
 
+    window.doiTuanGiaoVien = function(tuan) {
+        window.viewingWeekGV = tuan;
+        window.taiDuLieuGiaoVien();
+    };
+
     window.taiDuLieuGiaoVien = function() {
         onValue(ref(db, 'quan_ly_10a11/cai_dat'), (snapCaiDat) => {
             var caiDat = snapCaiDat.val();
             if(!caiDat) return;
             
-            var tuan = caiDat.tuan_hien_tai || "tuan_1";
-            var selectTuan = document.getElementById('chon-tuan-admin');
-            if(selectTuan) selectTuan.value = tuan;
+            var tuanHienTai = caiDat.tuan_hien_tai || "tuan_1";
+            var selectTuanAdmin = document.getElementById('chon-tuan-admin');
+            if(selectTuanAdmin) selectTuanAdmin.value = tuanHienTai;
+
+            // Nếu giáo viên chưa chọn xem tuần nào thì mặc định xem tuần hiện tại
+            if(!window.viewingWeekGV) window.viewingWeekGV = tuanHienTai;
+            document.getElementById('chon-tuan-gv-view').value = window.viewingWeekGV;
+            
+            var tuan = window.viewingWeekGV;
 
             var danhSach = (caiDat.danh_sach_tuan && caiDat.danh_sach_tuan[tuan]) ? caiDat.danh_sach_tuan[tuan] : caiDat.danh_sach;
             var leaders = caiDat.leaders || {};
             if(!danhSach) return;
 
+            // Render Khu vực Chấm điểm của Giáo viên (Giáo viên luôn có quyền sửa -> isEditable = true)
+            clearAllListeners();
+            renderDanhSachChamDiem(window.currentToGV, 'danh-sach-cham-diem-gv', 'gv', window.currentNgayGV, true, tuan);
+
+            // Bảng điểm chi tiết và Cảnh báo
             onValue(ref(db, 'quan_ly_10a11/diem/' + tuan), (snapDiem) => {
                 var duLieuDiem = snapDiem.val() || {};
                 var arrHocSinh = [];
@@ -524,8 +601,6 @@
                 for (let id in danhSach) {
                     let hs = danhSach[id];
                     let diem = 100;
-                    
-                    // Thêm 2 biến để theo dõi lỗi vi phạm
                     let tongTru = 0; 
                     let soLoiNang = 0; 
                     
@@ -537,34 +612,23 @@
                                     let pts = parseInt(match[1]);
                                     diem += pts;
                                     
-                                    // Ghi nhận lịch sử vi phạm
                                     if(pts < 0) {
                                         tongTru += Math.abs(pts);
-                                        // Các lỗi bị trừ từ 8 điểm trở lên được xem là lỗi nặng (Mức 3 & 4)
-                                        if(pts <= -8) {
-                                            soLoiNang++;
-                                        }
+                                        if(pts <= -8) soLoiNang++;
                                     }
                                 }
                             }
                         }
                     }
                     
-                    arrHocSinh.push({ 
-                        id: id, 
-                        ten: hs.ten, 
-                        to: hs.to, 
-                        diem: diem,
-                        tongTru: tongTru,
-                        soLoiNang: soLoiNang
-                    });
+                    arrHocSinh.push({ id: id, ten: hs.ten, to: hs.to, diem: diem, tongTru: tongTru, soLoiNang: soLoiNang });
                     
                     if(thongKeTo[hs.to]) {
                         thongKeTo[hs.to].tongDiem += diem; thongKeTo[hs.to].soHs += 1;
                     }
                 }
 
-                // Vẽ Bảng Thống Kê
+                // Thống Kê
                 var bangThongKe = `<table style="width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px;">
                     <tr style="background: #f4f7f6; text-align: center;">
                         <th style="padding: 8px; border-bottom: 1px solid #ddd;">Tổ 1</th><th style="padding: 8px; border-bottom: 1px solid #ddd;">Tổ 2</th>
@@ -577,8 +641,7 @@
                 bangThongKe += `</tr></table>`;
                 document.getElementById('thong-ke-to').innerHTML = bangThongKe;
 
-                // LỌC VÀ VẼ BẢNG CẢNH BÁO 6 HỌC SINH TỆ NHẤT
-                // Thuật toán: Ưu tiên xếp Điểm (thấp lên trước) -> Số lỗi nặng (nhiều lên trước) -> Tổng trừ (nhiều lên trước)
+                // Cảnh báo 6 HS tệ nhất
                 arrHocSinh.sort((a, b) => {
                     if (a.diem !== b.diem) return a.diem - b.diem;
                     if (a.soLoiNang !== b.soLoiNang) return b.soLoiNang - a.soLoiNang;
@@ -595,7 +658,6 @@
                     </tr>`;
                 
                 bottom6.forEach(hs => {
-                    // Tạo nội dung cảnh báo vi phạm
                     let textViPham = hs.tongTru > 0 ? `<span style="color:#c0392b; font-size: 13px;">-${hs.tongTru}đ</span>` : "-";
                     if(hs.soLoiNang > 0) {
                         textViPham += `<br><span style="font-size: 10px; background: #c0392b; color: white; padding: 2px 4px; border-radius: 4px; white-space: nowrap;">${hs.soLoiNang} Lỗi nặng</span>`;
@@ -611,8 +673,7 @@
                 bangCanhBao += `</table>`;
                 document.getElementById('danh-sach-canh-bao').innerHTML = bangCanhBao;
 
-
-                // Vẽ Bảng Điểm & Nút cấp quyền Tổ trưởng
+                // Bảng Điểm Chi Tiết
                 var bangDiemHTML = `<table style="width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px;">
                     <tr style="background: #f4f7f6; text-align: left;">
                         <th style="padding: 8px; border-bottom: 1px solid #ddd;" class="nowrap-text">Tên</th>
@@ -621,7 +682,6 @@
                         <th style="padding: 8px; border-bottom: 1px solid #ddd; text-align: center;">Quyền</th>
                     </tr>`;
 
-                // Bảng chi tiết sẽ sắp xếp lại theo Tổ để dễ nhìn
                 var arrChiTiet = [...arrHocSinh];
                 arrChiTiet.sort((a, b) => { if (a.to !== b.to) return a.to - b.to; return 0; });
 
@@ -649,71 +709,119 @@
         });
     };
 
-    window.taiDuLieuToTruong = function(toDuocChon = 1) {
-        var tuan = window.tuanHienTaiGlobal;
-        var soTuan = tuan.split('_')[1];
-        document.getElementById('hien-thi-tuan').innerText = "Tuần hoạt động: Tuần " + soTuan;
+    window.chonToGV = function(to, element) {
+        window.currentToGV = to;
+        var buttons = document.querySelectorAll('#chon-to-gv .btn-day');
+        buttons.forEach(b => b.classList.remove('active'));
+        element.classList.add('active');
+        
+        clearAllListeners();
+        renderDanhSachChamDiem(window.currentToGV, 'danh-sach-cham-diem-gv', 'gv', window.currentNgayGV, true, window.viewingWeekGV);
+    };
 
-        var ds = window.globalDanhSach;
-        var html = "";
-        for(let id in ds) {
-            if(ds[id].to == toDuocChon) {
-                html += `<div class="student-card">
-                    <div class="student-header">
-                        <div class="student-name nowrap-text">${ds[id].ten}</div>
-                        <button class="btn-toggle nowrap-text" onclick="togglePanel('panel-${id}')">Chấm điểm ▼</button>
-                    </div>
-                    <div id="panel-${id}" class="action-panel" data-id="${id}">
-                        ${actionPanelTemplate}
-                    </div>
-                </div>`;
-            }
-        }
-        document.getElementById('danh-sach-to-truong').innerHTML = html;
+    window.chonNgayGV = function(ngay, element) {
+        window.currentNgayGV = ngay;
+        var buttons = document.querySelectorAll('#chon-ngay-gv .btn-day');
+        buttons.forEach(b => b.classList.remove('active'));
+        element.classList.add('active');
+        
+        clearAllListeners();
+        renderDanhSachChamDiem(window.currentToGV, 'danh-sach-cham-diem-gv', 'gv', window.currentNgayGV, true, window.viewingWeekGV);
+    };
+
+    window.doiTuanToTruong = function(tuan) {
+        window.viewingWeekTT = tuan;
+        window.taiDuLieuToTruong(window.currentToTruongTo);
+    };
+
+    window.taiDuLieuToTruong = function(toDuocChon = null) {
+        if(!toDuocChon) toDuocChon = window.currentToTruongTo;
+        
+        if(!window.viewingWeekTT) window.viewingWeekTT = window.tuanHienTaiGlobal;
+        document.getElementById('chon-tuan-tt').value = window.viewingWeekTT;
+
+        var soTuan = window.viewingWeekTT.split('_')[1];
+        
+        // Cập nhật text hiển thị
+        let statusText = (window.viewingWeekTT === window.tuanHienTaiGlobal) 
+            ? "Trạng thái: Đang hoạt động (Có thể chấm điểm)" 
+            : "Trạng thái: Chỉ xem (Tuần đã qua)";
+        document.getElementById('hien-thi-tuan').innerText = statusText;
+
+        // Tổ trưởng chỉ được sửa điểm nếu đang ở tuần hiện tại
+        var isEditable = (window.viewingWeekTT === window.tuanHienTaiGlobal);
+
+        clearAllListeners();
+        renderDanhSachChamDiem(toDuocChon, 'danh-sach-to-truong', 'tt', window.currentNgayToTruong, isEditable, window.viewingWeekTT);
         
         var buttons = document.querySelectorAll('#chon-to-to-truong .btn-day');
         buttons.forEach(b => b.classList.remove('active'));
         if(buttons[toDuocChon - 1]) buttons[toDuocChon - 1].classList.add('active');
     };
     
+    window.chonTo = function(to, element) {
+        if(window.currentToTruongTo && window.currentToTruongTo != to) {
+            alert("LỖI PHÂN QUYỀN: Bạn chỉ được phép quản lý Tổ " + window.currentToTruongTo + "!");
+            return;
+        }
+        window.taiDuLieuToTruong(to);
+    };
+
+    window.chonNgay = function(ngay, element) {
+        window.currentNgayToTruong = ngay;
+        var buttons = document.querySelectorAll('#chon-ngay-to-truong .btn-day');
+        buttons.forEach(b => b.classList.remove('active'));
+        element.classList.add('active');
+        
+        window.taiDuLieuToTruong(window.currentToTruongTo); // render lại
+    };
+
+    window.doiTuanHocSinh = function(tuan) {
+        window.viewingWeekHS = tuan;
+        window.taiDuLieuHocSinh(window.currentHSId);
+    };
+
     window.taiDuLieuHocSinh = function(hsId) {
-        var tuan = window.tuanHienTaiGlobal;
+        if(!window.viewingWeekHS) window.viewingWeekHS = window.tuanHienTaiGlobal;
+        document.getElementById('chon-tuan-hs').value = window.viewingWeekHS;
+
+        var tuan = window.viewingWeekHS;
         var soTuan = tuan.split('_')[1];
         
         document.getElementById('student-name-title').innerText = "Điểm của: " + window.globalDanhSach[hsId].ten;
-        document.getElementById('student-tuan-title').innerText = "Đang xem: Tuần " + soTuan;
 
         onValue(ref(db, 'quan_ly_10a11/diem/' + tuan + '/' + hsId), (snap) => {
             var duLieu = snap.val() || {};
             var diem = 100;
             var htmlHistory = "";
+            
+            // Đảm bảo thứ tự hiển thị ngày chuẩn
+            const daysOrder = ["Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6", "Thứ 7"];
+            
+            daysOrder.forEach(thu => {
+                if(duLieu[thu]) {
+                    let dailyHistory = "";
+                    for(let key in duLieu[thu]) {
+                        let ma = duLieu[thu][key].ma_quy_uoc;
+                        let match = ma.match(/\(([-+]\d+)đ\)/);
+                        let points = 0;
+                        if(match) points = parseInt(match[1]);
+                        diem += points;
 
-            for(let thu in duLieu) {
-                let hasRecord = false;
-                let dailyHistory = "";
-                for(let key in duLieu[thu]) {
-                    hasRecord = true;
-                    let ma = duLieu[thu][key].ma_quy_uoc;
-                    let match = ma.match(/\(([-+]\d+)đ\)/);
-                    let points = 0;
-                    if(match) points = parseInt(match[1]);
-                    diem += points;
-
-                    let color = points > 0 ? '#27ae60' : '#e74c3c';
-                    dailyHistory += `<div style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px dashed #eee;">
-                        <span>${ma}</span>
-                        <span style="color: ${color}; font-weight: bold;">${points > 0 ? '+'+points : points}đ</span>
-                    </div>`;
-                }
-                
-                if(hasRecord) {
+                        let color = points > 0 ? '#27ae60' : '#e74c3c';
+                        dailyHistory += `<div style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px dashed #eee;">
+                            <span>${ma}</span>
+                            <span style="color: ${color}; font-weight: bold;">${points > 0 ? '+'+points : points}đ</span>
+                        </div>`;
+                    }
+                    
                     htmlHistory += `<div style="font-weight: bold; color: #2c3e50; margin-top: 15px; border-bottom: 2px solid #3498db; display: inline-block; padding-bottom: 3px;">${thu}</div>`;
                     htmlHistory += dailyHistory;
                 }
-            }
+            });
 
             if(htmlHistory === "") {
-                htmlHistory = "<div style='color: #7f8c8d; text-align: center; padding: 20px; font-style: italic;'>Tuyệt vời! Bạn chưa có điểm cộng/trừ nào trong tuần này.</div>";
+                htmlHistory = "<div style='color: #7f8c8d; text-align: center; padding: 20px; font-style: italic;'>Tuyệt vời! Bạn chưa bị trừ/cộng điểm nào trong tuần này.</div>";
             }
 
             let mauDiemTong = diem >= 80 ? '#27ae60' : '#e74c3c';
@@ -721,24 +829,6 @@
             document.getElementById('student-total-score').style.color = mauDiemTong;
             document.getElementById('student-history').innerHTML = htmlHistory;
         });
-    };
-
-    window.chonTo = function(to, element) {
-        if(window.currentToTruongTo && window.currentToTruongTo != to) {
-            alert("LỖI PHÂN QUYỀN: Bạn chỉ được phép quản lý Tổ " + window.currentToTruongTo + "!");
-            return;
-        }
-
-        var buttons = document.querySelectorAll('#chon-to-to-truong .btn-day');
-        buttons.forEach(b => b.classList.remove('active'));
-        element.classList.add('active');
-        window.taiDuLieuToTruong(to);
-    };
-
-    window.chonNgay = function(element) {
-        var buttons = document.querySelectorAll('#chon-ngay-to-truong .btn-day');
-        buttons.forEach(b => b.classList.remove('active'));
-        element.classList.add('active');
     };
 
     window.login = function() {
@@ -754,6 +844,7 @@
             document.getElementById('password').value = "";
             manHinhDangNhap.style.display = 'none';
             manHinhGV.style.display = 'block';
+            window.viewingWeekGV = window.tuanHienTaiGlobal; // Reset về tuần HT khi login
             window.taiDuLieuGiaoVien();
         } 
         else if (mode === 'hs' && matKhau === "123456") {
@@ -761,12 +852,14 @@
             if(!hsId) { alert("Vui lòng chọn tên của bạn!"); return; }
             
             document.getElementById('password').value = "";
+            window.currentHSId = hsId;
             manHinhDangNhap.style.display = 'none';
             
             if(window.globalLeaders[hsId]) {
                 manHinhToTruong.style.display = 'block';
                 var toCuaHS = window.globalDanhSach[hsId].to;
                 window.currentToTruongTo = toCuaHS; 
+                window.viewingWeekTT = window.tuanHienTaiGlobal; // Reset về tuần HT
 
                 var btnTos = document.querySelectorAll('#chon-to-to-truong .btn-day');
                 btnTos.forEach((btn, index) => {
@@ -776,10 +869,12 @@
                         btn.style.display = 'none';
                     }
                 });
-
+                
+                window.currentNgayToTruong = "Thứ 2";
                 window.taiDuLieuToTruong(toCuaHS); 
             } else {
                 manHinhHocSinh.style.display = 'block';
+                window.viewingWeekHS = window.tuanHienTaiGlobal; // Reset về tuần HT
                 window.taiDuLieuHocSinh(hsId);
             }
         } 
@@ -790,6 +885,7 @@
     
     window.dangXuat = function() {
         window.currentToTruongTo = null; 
+        clearAllListeners();
         document.getElementById('login-screen').style.display = 'flex';
         document.getElementById('main-app').style.display = 'none';
         document.getElementById('admin-dashboard').style.display = 'none';
@@ -801,24 +897,22 @@
         panel.style.display = (panel.style.display === "block") ? "none" : "block";
     };
 
-    document.addEventListener("DOMContentLoaded", function() {
-        var selectTuan = document.getElementById('chon-tuan-admin');
-        if (selectTuan) {
-            for(let i=1; i<=35; i++) {
-                let opt = document.createElement('option');
-                opt.value = "tuan_" + i;
-                opt.innerText = "Tuần " + i;
-                selectTuan.appendChild(opt);
-            }
-        }
-
-        document.getElementById('danh-sach-to-truong').addEventListener('click', function(e) {
+    function attachSavePointEvent(containerId) {
+        document.getElementById(containerId).addEventListener('click', function(e) {
             if(e.target.classList.contains('btn-code')) {
-                var tenMaLoi = e.target.innerText; 
-                var thuHienTai = document.querySelector('#chon-ngay-to-truong .btn-day.active').innerText;
+                var tenMaLoi = e.target.getAttribute('data-code'); 
                 var panel = e.target.closest('.action-panel');
                 var idHocSinh = panel.getAttribute('data-id');
-                var tuan = window.tuanHienTaiGlobal;
+                var context = panel.getAttribute('data-context'); // "gv" hoặc "tt"
+                
+                var thuHienTai = context === 'gv' ? window.currentNgayGV : window.currentNgayToTruong;
+                var tuan = context === 'gv' ? window.viewingWeekGV : window.viewingWeekTT;
+
+                // Double check quyền Tổ Trưởng: không cho ghi vào db nếu khác tuần hiện tại
+                if (context === 'tt' && tuan !== window.tuanHienTaiGlobal) {
+                    alert("Lỗi: Bạn không thể chấm điểm cho tuần đã qua!");
+                    return;
+                }
 
                 var duongDan = ref(db, 'quan_ly_10a11/diem/' + tuan + '/' + idHocSinh + '/' + thuHienTai);
                 var banGhiMoi = push(duongDan);
@@ -826,14 +920,35 @@
                 set(banGhiMoi, {
                     ma_quy_uoc: tenMaLoi,
                     thoi_gian_thuc: new Date().toLocaleString('vi-VN')
-                }).then(() => {
-                    alert("Đã ghi nhận " + tenMaLoi + " thành công!");
                 });
 
-                e.target.style.opacity = "0.5";
-                setTimeout(() => { e.target.style.opacity = "1"; }, 300);
+                // Hiệu ứng click
+                e.target.style.transform = "scale(0.9)";
+                setTimeout(() => { e.target.style.transform = "scale(1)"; }, 150);
             }
         });
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+        var selectTuan = document.getElementById('chon-tuan-admin');
+        var selectTuanGvView = document.getElementById('chon-tuan-gv-view');
+        var selectTuanTT = document.getElementById('chon-tuan-tt');
+        var selectTuanHS = document.getElementById('chon-tuan-hs');
+
+        for(let i=1; i<=35; i++) {
+            let opt = document.createElement('option');
+            opt.value = "tuan_" + i;
+            opt.innerText = "Tuần " + i;
+            
+            if (selectTuan) selectTuan.appendChild(opt.cloneNode(true));
+            if (selectTuanGvView) selectTuanGvView.appendChild(opt.cloneNode(true));
+            if (selectTuanTT) selectTuanTT.appendChild(opt.cloneNode(true));
+            if (selectTuanHS) selectTuanHS.appendChild(opt.cloneNode(true));
+        }
+
+        // Gắn sự kiện click chấm điểm cho cả Admin (GV) và Tổ trưởng
+        attachSavePointEvent('danh-sach-to-truong');
+        attachSavePointEvent('danh-sach-cham-diem-gv');
     });
 </script>
 </body>
